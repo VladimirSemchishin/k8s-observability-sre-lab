@@ -94,10 +94,6 @@ UIs (Traefik default self-signed cert):
 
 Edge login for Traefik `/ui/traefik`: **admin / admin**.
 
-Dashboard `/ui/kubernetes-dashboard` is token-only (v7 uses `Authorization: Bearer`, so HTTP Basic on the same host breaks the SPA):
-
-```bash
-kubectl -n kubernetes-dashboard create token admin-user
-```
+Dashboard `/ui/kubernetes-dashboard`: same **admin / admin** as Traefik. v7 has no skip-login; helmfile postsync injects the `admin-user` SA token as `Authorization: Bearer`, so the token form is skipped. Do not commit that token — it is read from the bound Secret at sync time.
 
 Do not commit `terraform.tfvars` or `*.tfstate`.

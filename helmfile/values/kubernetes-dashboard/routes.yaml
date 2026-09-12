@@ -1,9 +1,9 @@
 # Traefik edge: /ui/kubernetes-dashboard
-# No ui-auth here: Dashboard v7 sends Authorization: Bearer, which collides with
-# HTTP Basic on the same header (HTML 401 vs API 401). Token is the gate.
-# Official extras.manifests: https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/charts/kubernetes-dashboard/templates/extras/manifests.yaml
-# Sample admin-user: https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/docs/user/access-control/creating-sample-user.md
-# Kong self-signed: ServersTransport insecureSkipVerify (https://github.com/kubernetes-retired/dashboard/issues/10109)
+# Login is Traefik basic auth (admin/admin). Dashboard v7 has no skip-login;
+# Traefik injects Authorization: Bearer from SA admin-user (hook), so the
+# token form is skipped. Official: header has highest priority and skips login.
+# https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/docs/user/access-control/README.md
+# Kong self-signed: https://github.com/kubernetes-retired/dashboard/issues/10109
 
 extras:
   manifests:
@@ -36,6 +36,9 @@ extras:
           - match: PathPrefix(`/ui/kubernetes-dashboard`)
             kind: Rule
             middlewares:
+              - name: ui-auth
+                namespace: traefik
+              - name: dashboard-inject-token
               - name: dashboard-strip-prefix
             services:
               - name: kubernetes-dashboard-kong-proxy

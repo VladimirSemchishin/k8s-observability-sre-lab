@@ -18,6 +18,8 @@ extraObjects:
     spec:
       basicAuth:
         secret: ui-auth
+        # Strip Basic so backends can use Authorization: Bearer (Dashboard).
+        removeHeader: true
   - apiVersion: traefik.io/v1alpha1
     kind: Middleware
     metadata:

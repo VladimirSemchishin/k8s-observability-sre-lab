@@ -10,3 +10,9 @@ releases:
       - values/kubernetes-dashboard/common.yaml
       - values/kubernetes-dashboard/routes.yaml
     missingFileHandler: Error
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/inject-dashboard-token.sh
