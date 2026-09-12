@@ -24,3 +24,8 @@ releases:
           - --force-conflicts
           - -f
           - helm-charts/prometheus-operator-crds/templates
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/apply-telegram-local.sh
