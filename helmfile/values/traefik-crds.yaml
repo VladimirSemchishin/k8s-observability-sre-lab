@@ -1,0 +1,8 @@
+# Official traefik/traefik-crds 1.18.0 — only Traefik CRDs (IngressRoute, Middleware, …).
+# Hub / Gateway API / Knative not used in this lab.
+traefik: true
+gatewayAPI: false
+gatewayAPIExperimental: false
+knative: false
+hub: false
+deleteOnUninstall: false

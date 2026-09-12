@@ -1,0 +1,12 @@
+# Lab helmfile. Style: chatbot-infra-helm (local charts + values + releases).
+# Step 3: Traefik only. Later stacks add a file under releases/.
+
+helmDefaults:
+  wait: true
+  timeout: 600
+  createNamespace: true
+  forceConflicts: true
+
+bases:
+  - releases/traefik-crds.yaml
+  - releases/traefik.yaml

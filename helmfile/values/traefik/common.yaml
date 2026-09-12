@@ -1,0 +1,104 @@
+# Official traefik/traefik 41.5.0 / app v3.7.13 — overrides only.
+# Image: docker.io/traefik (opensource). No persistence (ACME not used).
+
+image:
+  registry: docker.io
+  repository: traefik
+  tag: v3.7.13
+  pullPolicy: IfNotPresent
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik
+
+gateway:
+  enabled: false
+
+gatewayClass:
+  enabled: false
+
+api:
+  dashboard: true
+  # Official api.basePath — dashboard and API under /ui/traefik
+  # https://doc.traefik.io/traefik/operations/api/
+  basePath: /ui/traefik
+
+accessLog:
+  enabled: true
+  format: json
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+    allowEmptyServices: true
+    ingressClass: traefik
+  kubernetesIngress:
+    enabled: true
+    allowEmptyServices: true
+    ingressClass: traefik
+    publishedService:
+      enabled: true
+  kubernetesGateway:
+    enabled: false
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: PathPrefix(`/ui/traefik`)
+    services:
+      - name: api@internal
+        kind: TraefikService
+    entryPoints:
+      - websecure
+    middlewares:
+      - name: ui-auth
+        namespace: traefik
+    tls: {}
+  healthcheck:
+    enabled: false
+
+deployment:
+  kind: Deployment
+  replicas: 1
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+persistence:
+  enabled: false
+
+metrics:
+  prometheus:
+    serviceMonitor:
+      enabled: false
+
+service:
+  enabled: true
+  single: true
+  annotations:
+    # Official DOKS LB annotations:
+    # https://docs.digitalocean.com/products/kubernetes/how-to/configure-load-balancers/
+    # REGIONAL_NETWORK = L4 TCP (default on DOKS 1.33.1+). Traefik terminates TLS.
+    # Do not set do-loadbalancer-ip (that is BYOIP only, not Reserved IP).
+    service.beta.kubernetes.io/do-loadbalancer-name: k8s-observability-sre-lab-traefik
+    service.beta.kubernetes.io/do-loadbalancer-type: REGIONAL_NETWORK
+    service.beta.kubernetes.io/do-loadbalancer-size-unit: "1"
+  spec:
+    type: LoadBalancer
+
+ports:
+  web:
+    expose:
+      default: true
+    exposedPort: 80
+  websecure:
+    expose:
+      default: true
+    exposedPort: 443
+    http:
+      tls:
+        enabled: true

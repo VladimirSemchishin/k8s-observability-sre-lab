@@ -1,0 +1,10 @@
+releases:
+  - name: traefik-crds
+    namespace: traefik
+    chart: helm-charts/traefik-crds
+    labels:
+      stack: traefik
+    values:
+      - values/traefik-crds.yaml
+    wait: true
+    disableValidationOnInstall: true

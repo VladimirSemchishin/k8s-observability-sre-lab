@@ -1,0 +1,48 @@
+# extraObjects: shared UI basicAuth + HTTP→HTTPS.
+# Hash from TRAEFIK_BASICAUTH_HASH (htpasswd bcrypt). Not committed.
+# Other /ui/<service> IngressRoutes land with those stacks (Steps 4–7), same ui-auth middleware.
+{{- $hash := requiredEnv "TRAEFIK_BASICAUTH_HASH" }}
+extraObjects:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ui-auth
+      namespace: traefik
+    type: Opaque
+    stringData:
+      users: |
+        admin:{{ $hash }}
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: ui-auth
+      namespace: traefik
+    spec:
+      basicAuth:
+        secret: ui-auth
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: redirect-to-https
+      namespace: traefik
+    spec:
+      redirectScheme:
+        scheme: https
+        permanent: true
+  - apiVersion: traefik.io/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: http-to-https
+      namespace: traefik
+    spec:
+      ingressClassName: traefik
+      entryPoints:
+        - web
+      routes:
+        - match: PathPrefix(`/`)
+          priority: 1
+          middlewares:
+            - name: redirect-to-https
+          services:
+            - name: noop@internal
+              kind: TraefikService

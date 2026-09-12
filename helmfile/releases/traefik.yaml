@@ -1,0 +1,12 @@
+releases:
+  - name: traefik
+    namespace: traefik
+    chart: helm-charts/traefik
+    labels:
+      stack: traefik
+    values:
+      - values/traefik/common.yaml
+      - values/traefik/routes.yaml.gotmpl
+    needs:
+      - traefik/traefik-crds
+    missingFileHandler: Error

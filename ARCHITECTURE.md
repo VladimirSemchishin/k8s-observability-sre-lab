@@ -1,15 +1,20 @@
 # Architecture (agreed)
 
-Portfolio stand for Gig A. Cloud switched to **DigitalOcean** on 2026-09-12. Budget top-up `N` is **not** set.
+Portfolio stand for Gig A. Cloud: **DigitalOcean / DOKS** (`nyc3`). Budget top-up `N` is **not** set.
 
 ## Goal
 Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces, alerting, SLO/SLI, FinOps, chaos/load evidence, 2 incident case studies. English README + diagram + short demo later.
 
+## Repo layout
+- `terraform/` — VPC + DOKS. Remote state in Spaces bucket `tf-state-k8s-observability-sre-lab`.
+- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). Step 3: Traefik only.
+
 ## Cluster
 - **DigitalOcean Kubernetes (DOKS)**, managed control plane — **no** self-managed master nodes
 - **Not** AWS / EKS
-- Worker node pool + DigitalOcean VPC
-- Reserved IP / Load Balancer in front of Traefik
+- Region `nyc3`, pool **2 × `s-2vcpu-4gb`**, k8s `1.35.7-do.4`, `ha=false`
+- VPC `k8s-observability-sre-lab-net` `10.10.10.0/24`
+- Public IP for Traefik comes from the DOKS LoadBalancer Service (not a DigitalOcean Reserved IP — those attach to Droplets only)
 
 ## Ingress / UI
 - Traefik as the edge LB
@@ -34,10 +39,10 @@ UI list:
 - FinOps: Kubecost and/or $/day, $/namespace (later steps)
 
 ## DigitalOcean / Terraform
-- Auth: `do_token` (DigitalOcean Personal Access Token) in local `terraform.tfvars` (**gitignored**)
-- Repo ships `terraform.tfvars.example` with an empty `do_token` placeholder only
+- Auth: `do_token` in local `terraform/terraform.tfvars` (**gitignored**)
+- Repo ships `terraform/terraform.tfvars.example` with an empty `do_token` placeholder only
 - Do not commit the token
 - Account top-up amount `N`: **TBD** — do not assume a number
 
 ## Out of scope for this file
-Droplet/node sizes, region, node count, and dollar budget — still open.
+Dollar budget top-up `N`.

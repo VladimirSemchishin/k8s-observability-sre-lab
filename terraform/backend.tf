@@ -1,5 +1,5 @@
 # Remote state in DigitalOcean Spaces (S3-compatible).
-# Create the bucket first: terraform -chdir=bootstrap init && apply
+# Create the bucket first: terraform -chdir=terraform/bootstrap init && apply
 # Official: https://docs.digitalocean.com/products/spaces/reference/terraform-backend/
 terraform {
   backend "s3" {

@@ -1,6 +1,8 @@
 .idea
 .DS_Store
 *.pem
+
+# Terraform (any depth)
 terraform.tfvars
 secrets.tfvars
 backend.conf
@@ -8,5 +10,15 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform
 .terraform.lock.hcl
-*kubeconfig.yaml
+tfplan
+*_kubeconfig.yaml
 kubeconfig
+
+# Helmfile
+helmfile/values/**/*.local.yaml
+helmfile/.env
+helmfile/.env.helmfile
+helmfile/rendered/
+.env
+.env.helmfile
+rendered/
