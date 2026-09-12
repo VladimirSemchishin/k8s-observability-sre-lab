@@ -1,7 +1,8 @@
 # Traefik edge: /ui/kubernetes-dashboard
-# Login is Traefik basic auth (admin/admin). Dashboard v7 has no skip-login;
-# Traefik injects Authorization: Bearer from SA admin-user (hook), so the
-# token form is skipped. Official: header has highest priority and skips login.
+# Cookie gate (admin/admin once). Not Traefik basicAuth: the SPA sends
+# Authorization: Bearer and that 401-loops with HTTP Basic on the same header.
+# After the cookie is set, inject SA Bearer so v7 skips the token form.
+# Official: header has highest priority and skips login.
 # https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/docs/user/access-control/README.md
 # Kong self-signed: https://github.com/kubernetes-retired/dashboard/issues/10109
 
@@ -36,8 +37,7 @@ extras:
           - match: PathPrefix(`/ui/kubernetes-dashboard`)
             kind: Rule
             middlewares:
-              - name: ui-auth
-                namespace: traefik
+              - name: dashboard-gate
               - name: dashboard-inject-token
               - name: dashboard-strip-prefix
             services:

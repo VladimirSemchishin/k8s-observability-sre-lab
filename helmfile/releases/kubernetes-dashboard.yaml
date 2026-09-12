@@ -15,4 +15,4 @@ releases:
         showlogs: true
         command: bash
         args:
-          - scripts/inject-dashboard-token.sh
+          - scripts/dashboard-postsync.sh
