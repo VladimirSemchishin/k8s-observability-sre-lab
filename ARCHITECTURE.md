@@ -1,48 +1,52 @@
-# Architecture (agreed)
+# Architecture
 
-Portfolio stand for Gig A. Cloud: **DigitalOcean / DOKS** (`nyc3`). Budget top-up `N` is **not** set.
+How the lab is wired. How to run it: [README.md](./README.md).
 
-## Goal
-Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces, alerting, SLO/SLI, FinOps, chaos/load evidence, 2 incident case studies. English README + diagram + short demo later.
+```mermaid
+flowchart TB
+  subgraph clients [You]
+    Browser
+    kubectl
+  end
 
-## Repo layout
-- `terraform/` — VPC + DOKS. Remote state in Spaces bucket `tf-state-k8s-observability-sre-lab`.
-- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). One `helmfile sync`: presync hook applies `traefik.io` CRDs, then Traefik, official Kubernetes Dashboard `7.14.0`, prometheus-operator CRDs hook + kube-prometheus-stack `90.1.1`, then Loki + Grafana Alloy (logs), then Jaeger all-in-one + OpenTelemetry Collector (OTLP → `jaeger.jaeger.svc:4317`). One Alertmanager (stack, ns `monitoring`) owns `/ui/alertmanager`.
+  subgraph do [DigitalOcean nyc3]
+    subgraph doks [DOKS 2 x s-2vcpu-4gb]
+      API[API server]
+      T[Traefik]
+      G[Grafana]
+      P[Prometheus]
+      AM[Alertmanager]
+      L[Loki]
+      Al[Alloy]
+      J[Jaeger]
+      O[OTel Collector]
+      KD[Kubernetes Dashboard]
+    end
+    VPC[VPC 10.10.10.0/24]
+    LB[DOKS LoadBalancer]
+  end
 
-## Cluster
-- **DigitalOcean Kubernetes (DOKS)**, managed control plane — **no** self-managed master nodes
-- **Not** AWS / EKS
-- Region `nyc3`, pool **2 × `s-2vcpu-4gb`**, k8s `1.35.7-do.4`, `ha=false`
-- VPC `k8s-observability-sre-lab-net` `10.10.10.0/24`
-- Public IP for Traefik comes from the DOKS LoadBalancer Service (not a DigitalOcean Reserved IP — those attach to Droplets only)
+  kubectl --> API
+  Browser -->|HTTPS /ui/* admin:admin| LB --> T
+  T --> G & P & AM & J & KD
+  Al -->|pod logs| L
+  Workloads -->|OTLP| O --> J
+  P & L & J -->|in-cluster DNS| G
+  P --> AM
+  AM -.-> Telegram
+```
 
-## Ingress / UI
-- Traefik as the edge LB
-- Path-prefix: `https://<lb-ip>/ui/<service>`
-- Extra strip-prefix / root-url config is expected so Grafana, Dashboard, and Jaeger work behind a path
-- Traefik basic auth in front (`admin` / `admin`); disable default auth on the apps behind it
+## Layers
 
-UI list:
-- Grafana — `/ui/grafana`
-- Prometheus — `/ui/prometheus`
-- Alertmanager — `/ui/alertmanager`
-- Jaeger — `/ui/jaeger`
-- Traefik dashboard — `/ui/traefik`
-- Official **Kubernetes Dashboard** — `/ui/kubernetes-dashboard`
-- **Not** kube-web-view
+1. **Terraform** — VPC + DOKS. State in Spaces. [terraform/README.md](./terraform/README.md)
+2. **Helmfile** — Traefik, Dashboard, kube-prometheus-stack, Loki, Alloy, Jaeger, OTel. [helmfile/README.md](./helmfile/README.md)
+3. **Edge** — one LB, path prefix `/ui/<service>`, shared basic auth except Kubernetes Dashboard (cookie gate)
 
-## Observability stack
-- Metrics: Prometheus + Grafana (kube-prometheus-stack)
-- Logs: Loki + Grafana Alloy
-- Alerts: Alertmanager → Telegram
-- Traces: OpenTelemetry collectors + **Jaeger** (not Tempo)
-- FinOps: Kubecost and/or $/day, $/namespace (later steps)
+Grafana datasources (Prometheus, Loki, Jaeger, Alertmanager) use Service DNS, so a new LB IP does not break them.
 
-## DigitalOcean / Terraform
-- Auth: `do_token` in local `terraform/terraform.tfvars` (**gitignored**)
-- Repo ships `terraform/terraform.tfvars.example` with an empty `do_token` placeholder only
-- Do not commit the token
-- Account top-up amount `N`: **TBD** — do not assume a number
+## Not in this stand
 
-## Out of scope for this file
-Dollar budget top-up `N`.
+- Control-plane or app HA
+- Persistent Jaeger (no OpenSearch / Cassandra)
+- Kubecost / FinOps dashboards (use the DigitalOcean billing page)
+- SLO burn alerts, chaos reports, incident write-ups

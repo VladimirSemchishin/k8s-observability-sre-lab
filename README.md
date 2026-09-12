@@ -1,63 +1,102 @@
 # k8s-observability-sre-lab
 
-DigitalOcean Kubernetes (DOKS) observability lab.
+A small **DigitalOcean Kubernetes (DOKS)** lab that deploys a full observability stack: metrics, logs, traces, dashboards, and alerts.
 
-Architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)  
-Task: https://github.com/VladimirSemchishin/tasks/issues/1
+Terraform creates the cluster. Helmfile installs the apps. After that you use `kubectl` as usual and open the UIs on one Traefik load balancer.
 
-```
-terraform/     # VPC + DOKS (Spaces tfstate)
-helmfile/      # Traefik + Dashboard + kube-prometheus-stack + Loki + Alloy + Jaeger + OTel
-```
-
-## What Terraform creates
-
-| Resource | Name / value |
+| | |
 |---|---|
-| Spaces bucket (tfstate) | `tf-state-k8s-observability-sre-lab` (`nyc3`) |
-| VPC | `k8s-observability-sre-lab-net` `10.10.10.0/24` |
-| DOKS | `k8s-observability-sre-lab`, version `1.35.7-do.4`, `ha=false` |
-| Node pool | **2 × `s-2vcpu-4gb`** (4 GiB / 2 vCPU each) |
+| Cloud | DigitalOcean / DOKS (`nyc3`) |
+| Nodes | 2 × `s-2vcpu-4gb`, Kubernetes `1.35.7`, control-plane HA off |
+| Edge | Traefik `LoadBalancer` — `https://<lb-ip>/ui/<service>` |
+| Login | `admin` / `admin` (see [User interfaces](#user-interfaces)) |
 
-HA control plane is **off**. Official provider default is `ha=true` on 1.36+ ($40/mo).
+Detailed install steps: [terraform/README.md](./terraform/README.md) · [helmfile/README.md](./helmfile/README.md). Diagram: [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-Traefik Load Balancer IP is created in the helmfile step (DOKS `Service` type `LoadBalancer`), not as a Reserved IP.
+## What you get
 
-## Node size (why 2×4 GiB)
+A working Kubernetes cluster plus:
 
-From `GET /v2/sizes` (account, 2026-09-12):
+- **Metrics** — Prometheus + Grafana (kube-prometheus-stack)
+- **Logs** — Loki + Grafana Alloy
+- **Traces** — OpenTelemetry Collector → Jaeger
+- **Alerts** — Alertmanager (optional Telegram) and per-service `*Down` rules
+- **Cluster UI** — official Kubernetes Dashboard
 
-- `s-2vcpu-2gb` = 2 GiB — too small for Prom + Loki + Jaeger + Traefik + Dashboard + kube-system
-- `s-2vcpu-4gb` = 4 GiB, **$24/mo = $0.03571/hr**
-- `s-4vcpu-8gb` = 8 GiB on one node, $48/mo
+This is a lab, not HA production. Replicas stay at 1 so the stack fits two 4 GiB nodes. Jaeger keeps traces in memory.
 
-Two `s-2vcpu-4gb` ≈ 8 GiB / 4 vCPU, **$0.071/hr**. Destroy after the test.
+## Architecture
 
-## Deploy Terraform
+```mermaid
+flowchart LR
+  You[You] -->|kubectl| API[DOKS API]
+  You -->|HTTPS /ui/*| T[Traefik LB]
 
-Need: Terraform >= 1.5, DigitalOcean API token, Spaces access key + secret.
+  T --> G[Grafana]
+  T --> P[Prometheus]
+  T --> A[Alertmanager]
+  T --> J[Jaeger]
+  T --> D[Kubernetes Dashboard]
+  T --> TU[Traefik dashboard]
 
-1. Copy `terraform/terraform.tfvars.example` → `terraform/terraform.tfvars` and fill in.
-
-2. Bucket (once; local state in `terraform/bootstrap/`):
-
-```bash
-terraform -chdir=terraform/bootstrap init
-terraform -chdir=terraform/bootstrap plan
-terraform -chdir=terraform/bootstrap apply
+  Alloy[Alloy DaemonSet] -->|logs| L[Loki]
+  Apps[Workloads] -->|OTLP 4317/4318| O[OTel Collector]
+  O --> J
+  P --> G
+  L --> G
+  J --> G
+  P --> A
+  A -.->|optional| Tg[Telegram]
 ```
 
-3. Cluster (state in Spaces). Export Spaces keys as AWS creds for the S3 backend ([DO docs](https://docs.digitalocean.com/products/spaces/reference/terraform-backend/)):
+Traffic between Grafana and the backends uses in-cluster DNS (`*.svc.cluster.local`), not the public IP.
+
+## User interfaces
+
+Replace `<lb-ip>` with the Traefik Service address:
 
 ```bash
-export AWS_ACCESS_KEY_ID="$spaces_access_id"
-export AWS_SECRET_ACCESS_KEY="$spaces_secret_key"
-terraform -chdir=terraform init
-terraform -chdir=terraform plan
-terraform -chdir=terraform apply
+kubectl -n traefik get svc traefik
 ```
 
-4. Kubeconfig:
+Current lab IP (will change if the LB is recreated): `134.199.251.14`.
+
+| UI | URL | Auth |
+|---|---|---|
+| Grafana | `https://<lb-ip>/ui/grafana` | `admin` / `admin` (Traefik basic auth; Grafana form is off) |
+| Prometheus | `https://<lb-ip>/ui/prometheus` | same |
+| Alertmanager | `https://<lb-ip>/ui/alertmanager` | same |
+| Jaeger | `https://<lb-ip>/ui/jaeger` | same |
+| Traefik | `https://<lb-ip>/ui/traefik` | same |
+| Kubernetes Dashboard | `https://<lb-ip>/ui/kubernetes-dashboard` | `admin` / `admin` once (cookie gate, not Traefik basic auth) |
+
+The certificate is Traefik's default self-signed one — accept the browser warning.
+
+Loki has no public UI. Query logs from Grafana (folder `loki`). Alloy writes to `http://loki.loki.svc.cluster.local:3100`.
+
+## Repository layout
+
+```
+terraform/    # VPC + DOKS. State in DigitalOcean Spaces.
+helmfile/     # Vendored charts, values, dashboards, alerts. One helmfile sync.
+ARCHITECTURE.md
+```
+
+Secrets stay out of git: `terraform.tfvars`, `kubeconfig`, `helmfile/values/**/*.local.yaml`.
+
+## Prerequisites
+
+- DigitalOcean account and API token
+- Spaces access key (remote Terraform state)
+- Terraform >= 1.5
+- `kubectl`, `helm`, `helmfile`
+- Optional: Telegram bot token for Alertmanager
+
+## Quick start
+
+### 1. Cluster
+
+Follow [terraform/README.md](./terraform/README.md). When `terraform apply` finishes:
 
 ```bash
 terraform -chdir=terraform output -raw kubeconfig > kubeconfig
@@ -65,79 +104,43 @@ export KUBECONFIG=$PWD/kubeconfig
 kubectl get nodes
 ```
 
-5. Tear down (Helm first if applied, then):
+You should see two Ready nodes.
 
-```bash
-terraform -chdir=terraform destroy
-terraform -chdir=terraform/bootstrap destroy
-```
-
-## Helmfile
-
-Official charts vendored under `helmfile/helm-charts/`:
-
-- Traefik `41.5.0` / `v3.7.13` — `traefik.io` CRDs applied by a `presync` hook
-- Kubernetes Dashboard `7.14.0` (last official release; project archived, helm repo 404). Kong stays in-cluster; Traefik is the edge.
-- kube-prometheus-stack `90.1.1` / Operator `v0.93.1` as `helm-charts/kube-prometheus-stack-90.1.1.tgz`. Prometheus Operator CRDs (`prometheus-operator-crds` 31.0.1 slim extract) applied by a `presync` hook — not a Helm release (same size reason as Traefik).
-- Loki `18.13.0` / `3.7.7` (grafana-community) — monolithic, filesystem PVC, no MinIO
-- Grafana Alloy `1.12.1` / `v1.19.2` — DaemonSet, cluster/pod logs → Loki
-- Jaeger `4.13.1` / `2.20.0` all-in-one (in-memory, no Operator / Tempo / OpenSearch)
-- OpenTelemetry Collector `0.173.1` / `0.160.0` Deployment (OTLP in → `jaeger.jaeger.svc:4317`)
-
-One command after the cluster exists (`skipDeps` is set — charts are local):
+### 2. Observability stack
 
 ```bash
 helmfile -f helmfile/helmfile.yaml sync
 ```
 
-`sync` = hook (CRDs) + Helm upgrade, no plugins. `apply` also needs `helm-diff`.
+That installs Traefik, Kubernetes Dashboard, Prometheus, Grafana, Alertmanager, Loki, Alloy, Jaeger, and the OpenTelemetry Collector. Charts are vendored (`skipDeps`). Details: [helmfile/README.md](./helmfile/README.md).
 
-UIs (Traefik default self-signed cert):
+### 3. Open a UI
 
-- Traefik: `https://<lb-ip>/ui/traefik`
-- Kubernetes Dashboard: `https://<lb-ip>/ui/kubernetes-dashboard`
-- Grafana: `https://<lb-ip>/ui/grafana`
-- Prometheus: `https://<lb-ip>/ui/prometheus`
-- Alertmanager: `https://<lb-ip>/ui/alertmanager` (kube-prometheus-stack; routePrefix, no stripPrefix)
-- Jaeger: `https://<lb-ip>/ui/jaeger` (stripPrefix; in-cluster query is `jaeger.jaeger.svc:16686`)
+```bash
+kubectl -n traefik get svc traefik
+# then https://<EXTERNAL-IP>/ui/grafana  (admin / admin)
+```
 
-Loki has no UI here. Alloy pushes to `http://loki.loki.svc.cluster.local:3100`.
+## Short demo
 
-Edge login for Traefik `/ui/traefik`, Grafana, Prometheus, Alertmanager, Jaeger: **admin / admin** (`ui-auth` basicAuth, `removeHeader: true`). Grafana login form is off (anonymous Admin). Prometheus/Grafana use cookies, not Bearer, so they stay on shared basicAuth.
+About two minutes, after `helmfile sync`:
 
-Dashboard `/ui/kubernetes-dashboard`: **admin / admin** once (cookie gate). Traefik basicAuth is not used here — it 401-loops when the SPA sends `Authorization: Bearer`. After the cookie, helmfile injects the `admin-user` SA token so v7 skips the token form. Token is not in git.
+1. Grafana → folder `k8s` → **Node Exporter / Nodes** — CPU/memory for both Droplets.
+2. Folder `loki` → **K8s App Logs** — pick a namespace, you should see pod lines from Alloy.
+3. Folder `traefik` → **Traefik Ingress** — request rates on the path-prefix routes.
+4. `https://<lb-ip>/ui/jaeger` → search service `devo-smoke` (or send any OTLP to `opentelemetry-collector:4318`).
+5. `https://<lb-ip>/ui/prometheus` → **Alerts** — lab `*Down` rules stay inactive while targets are up.
 
-Do not commit `terraform.tfvars` or `*.tfstate`.
+## Tear down
 
-## Step 6 — Loki logs + Telegram on stack Alertmanager
+Uninstall apps first so DigitalOcean does not leave orphan disks / the LB:
 
-Logs: Alloy DaemonSet (clustering on so each node does not tail the whole cluster) ships pod logs to Loki in namespace `loki`. Persistence is a 10Gi filesystem PVC (DOKS default StorageClass). Memcached caches and MinIO are off to fit 2×4 GiB nodes.
+```bash
+helmfile -f helmfile/helmfile.yaml destroy
+terraform -chdir=terraform destroy
+terraform -chdir=terraform/bootstrap destroy   # Spaces bucket, last
+```
 
-Alerts: **one** Alertmanager — kube-prometheus-stack in namespace `monitoring`, UI at `/ui/alertmanager` (`routePrefix`, no stripPrefix). Do not add a second AM.
+## License
 
-Telegram: placeholders in `helmfile/values/kube-prometheus-stack/telegram.yaml`. Real bot token / chat id go in gitignored `telegram.local.yaml` (copy `telegram.local.yaml.example`). helmfile warns if the local file is missing. This overlay does not change the Traefik IngressRoute or `alertmanagerSpec.routePrefix`.
-
-## Step 7 — Traces (Jaeger + OpenTelemetry)
-
-Jaeger all-in-one in namespace `jaeger` (memory store, no PVC). UI at `/ui/jaeger` behind Traefik `ui-auth` + `stripPrefix`. Collector Deployment in `opentelemetry-collector` receives OTLP (ClusterIP 4317/4318) and exports to `jaeger.jaeger.svc.cluster.local:4317`. Grafana Jaeger datasource is the same in-cluster query URL (sidecar reload is 403; postsync hook POSTs it).
-
-## Grafana dashboards
-
-Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnabled: false`). Custom JSON lives in `helmfile/dashboards/<folder>/` — same layout as the GazProm stand (`k8s`, `loki`, `traefik`, `jaeger-opensearch`). Alloy and OTel folders were added for this lab. A helmfile hook loads them into ConfigMaps; the Grafana sidecar puts each directory in its own folder.
-
-## Alerts
-
-Basic service-down rules live in `helmfile/alerts/<service>/` (`prometheus`, `grafana`, `alertmanager`, `loki`, `alloy`, `traefik`, `jaeger`, `otel`, `k8s`). A helmfile `postsync` hook applies them as `PrometheusRule` objects (`release: kube-prometheus-stack`). They fire when `max(up{job=...}) == 0` or the job is absent, for 2m.
-
-## Persistence, retention, HA
-
-| Component | Disk | Retention | Replicas |
-|---|---|---|---|
-| Prometheus | 5Gi `do-block-storage` | 3d or 4GB | 1 |
-| Grafana | 5Gi `do-block-storage` | n/a (dashboards in git/ConfigMaps) | 1 |
-| Loki | 10Gi `do-block-storage` | 72h (compactor) | 1 |
-| Alertmanager | 1Gi `do-block-storage` (silences / nflog) | 120h | 1 |
-| Jaeger | none (in-memory) | process lifetime | 1 |
-| Traefik | none | n/a | 1 |
-
-HA is **off** on purpose: DOKS `ha=false`, 2× `s-2vcpu-4gb`. A second Prometheus/Loki replica does not fit. Control-plane HA would be a DigitalOcean toggle, not this helmfile.
+Use it as a portfolio / learning stand. Do not commit tokens or `terraform.tfvars`.
