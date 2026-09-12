@@ -32,6 +32,14 @@ loki:
     enabled: false
   ui:
     enabled: false
+  limits_config:
+    retention_period: 72h
+  compactor:
+    working_directory: /var/loki/compactor
+    compaction_interval: 10m
+    retention_enabled: true
+    retention_delete_delay: 2h
+    delete_request_store: filesystem
 
 singleBinary:
   replicas: 1

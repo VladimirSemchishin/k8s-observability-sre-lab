@@ -128,3 +128,16 @@ Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnab
 ## Alerts
 
 Basic service-down rules live in `helmfile/alerts/<service>/` (`prometheus`, `grafana`, `alertmanager`, `loki`, `alloy`, `traefik`, `jaeger`, `otel`, `k8s`). A helmfile `postsync` hook applies them as `PrometheusRule` objects (`release: kube-prometheus-stack`). They fire when `max(up{job=...}) == 0` or the job is absent, for 2m.
+
+## Persistence, retention, HA
+
+| Component | Disk | Retention | Replicas |
+|---|---|---|---|
+| Prometheus | 5Gi `do-block-storage` | 3d or 4GB | 1 |
+| Grafana | 5Gi `do-block-storage` | n/a (dashboards in git/ConfigMaps) | 1 |
+| Loki | 10Gi `do-block-storage` | 72h (compactor) | 1 |
+| Alertmanager | 1Gi `do-block-storage` (silences / nflog) | 120h | 1 |
+| Jaeger | none (in-memory) | process lifetime | 1 |
+| Traefik | none | n/a | 1 |
+
+HA is **off** on purpose: DOKS `ha=false`, 2× `s-2vcpu-4gb`. A second Prometheus/Loki replica does not fit. Control-plane HA would be a DigitalOcean toggle, not this helmfile.

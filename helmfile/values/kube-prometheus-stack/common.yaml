@@ -109,6 +109,7 @@ prometheus:
     externalUrl: https://134.199.251.14/ui/prometheus/
     routePrefix: /ui/prometheus
     retention: 3d
+    retentionSize: 4GB
     replicas: 1
     resources:
       requests:
@@ -135,7 +136,18 @@ alertmanager:
   alertmanagerSpec:
     externalUrl: https://134.199.251.14/ui/alertmanager/
     routePrefix: /ui/alertmanager
-    # No PVC. Telegram receiver: telegram.yaml (+ gitignored telegram.local.yaml).
+    replicas: 1
+    retention: 120h
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: do-block-storage
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    # Telegram receiver: telegram.yaml (+ gitignored telegram.local.yaml).
 
 prometheusOperator:
   resources:
