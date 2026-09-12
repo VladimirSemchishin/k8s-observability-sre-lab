@@ -1,0 +1,9 @@
+apiVersion: v2
+name: traefik-io-crds
+description: Traefik CRDs only (traefik.io). Slim extract from official traefik-crds 1.18.0 — Hub/Gateway/Knative omitted so the Helm release Secret stays under 1MiB.
+type: application
+version: 1.18.0
+appVersion: "v3.7.13"
+kubeVersion: ">=1.25.0-0"
+sources:
+  - https://github.com/traefik/traefik-helm-chart

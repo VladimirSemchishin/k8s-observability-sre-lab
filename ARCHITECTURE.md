@@ -7,7 +7,7 @@ Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces,
 
 ## Repo layout
 - `terraform/` — VPC + DOKS. Remote state in Spaces bucket `tf-state-k8s-observability-sre-lab`.
-- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). Step 3: Traefik only.
+- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). One `helmfile sync`: presync hook applies `traefik.io` CRDs, then Traefik. Later stacks add a release file.
 
 ## Cluster
 - **DigitalOcean Kubernetes (DOKS)**, managed control plane — **no** self-managed master nodes

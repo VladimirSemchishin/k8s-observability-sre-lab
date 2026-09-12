@@ -74,15 +74,14 @@ terraform -chdir=terraform/bootstrap destroy
 
 ## Helmfile (Traefik)
 
-Official charts vendored under `helmfile/helm-charts/` (`traefik` 41.5.0 / `v3.7.13`, `traefik-crds` 1.18.0).
-
-CRDs first (the vendored `traefik-crds` chart is too large for a Helm release Secret):
+Official Traefik chart vendored under `helmfile/helm-charts/` (`traefik` 41.5.0 / `v3.7.13`).
+`traefik.io` CRDs sit in `helmfile/helm-charts/traefik-io-crds` and are applied by a helmfile `presync` hook — one command, no extra kubectl.
 
 ```bash
-helmfile/scripts/install-traefik-crds.sh
-helmfile -f helmfile/helmfile.yaml template
-helmfile -f helmfile/helmfile.yaml apply
+helmfile -f helmfile/helmfile.yaml sync
 ```
+
+`sync` = hook (CRDs) + Helm upgrade, без плагинов. `apply` то же плюс diff и требует `helm-diff`.
 
 Dashboard: `https://<lb-ip>/ui/traefik` (Traefik default self-signed cert).
 

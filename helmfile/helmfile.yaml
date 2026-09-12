@@ -1,7 +1,6 @@
-# Lab helmfile. Style: chatbot-infra-helm (local charts + values + releases).
-# Step 3: Traefik only. Later stacks add a file under releases/.
-# CRDs: kubectl apply -f helm-charts/traefik-crds/crds-files/traefik
-# (full traefik-crds chart is >1MiB and does not fit a Helm release Secret).
+# After the cluster exists: one command
+#   helmfile -f helmfile/helmfile.yaml apply
+# CRDs: presync hook (kubectl apply). Later stacks add a file under releases/.
 
 helmDefaults:
   wait: true

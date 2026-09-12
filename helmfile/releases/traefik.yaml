@@ -8,3 +8,13 @@ releases:
       - values/traefik/common.yaml
       - values/traefik/routes.yaml
     missingFileHandler: Error
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: kubectl
+        args:
+          - apply
+          - --server-side
+          - --force-conflicts
+          - -f
+          - helm-charts/traefik-io-crds/templates
