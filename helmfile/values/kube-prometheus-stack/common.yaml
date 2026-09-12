@@ -28,6 +28,8 @@ grafana:
     enabled: false
   service:
     type: ClusterIP
+  deploymentStrategy:
+    type: Recreate
   persistence:
     enabled: true
     storageClassName: do-block-storage
@@ -37,9 +39,9 @@ grafana:
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
-    limits:
       memory: 256Mi
+    limits:
+      memory: 768Mi
   grafana.ini:
     server:
       root_url: https://134.199.251.14/ui/grafana/
