@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-jaeger
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.jaeger
+      rules:
+      - alert: JaegerDown
+        expr: max(up{job="jaeger"}) == 0 or absent(up{job="jaeger"})
+        for: 2m
+        labels:
+          severity: critical
+          service: jaeger
+        annotations:
+          summary: Jaeger is down
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

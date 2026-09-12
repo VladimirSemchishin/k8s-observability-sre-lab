@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-traefik
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.traefik
+      rules:
+      - alert: TraefikDown
+        expr: max(up{job="traefik-metrics"}) == 0 or absent(up{job="traefik-metrics"})
+        for: 2m
+        labels:
+          severity: critical
+          service: traefik
+        annotations:
+          summary: Traefik is down
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

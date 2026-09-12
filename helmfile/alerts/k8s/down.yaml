@@ -1,0 +1,48 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-k8s
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.k8s
+      rules:
+      - alert: KubeletDown
+        expr: max(up{job="kubelet"}) == 0 or absent(up{job="kubelet"})
+        for: 2m
+        labels:
+          severity: critical
+          service: k8s
+        annotations:
+          summary: Kubelet has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."
+      - alert: CoreDNSDown
+        expr: max(up{job="coredns"}) == 0 or absent(up{job="coredns"})
+        for: 2m
+        labels:
+          severity: critical
+          service: k8s
+        annotations:
+          summary: CoreDNS has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."
+      - alert: NodeExporterDown
+        expr: max(up{job="node-exporter"}) == 0 or absent(up{job="node-exporter"})
+        for: 2m
+        labels:
+          severity: critical
+          service: k8s
+        annotations:
+          summary: node-exporter has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."
+      - alert: APIServerDown
+        expr: max(up{job="apiserver"}) == 0 or absent(up{job="apiserver"})
+        for: 2m
+        labels:
+          severity: critical
+          service: k8s
+        annotations:
+          summary: Kubernetes API server is down
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

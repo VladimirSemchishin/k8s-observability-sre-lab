@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-grafana
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.grafana
+      rules:
+      - alert: GrafanaDown
+        expr: max(up{job="kube-prometheus-stack-grafana"}) == 0 or absent(up{job="kube-prometheus-stack-grafana"})
+        for: 2m
+        labels:
+          severity: critical
+          service: grafana
+        annotations:
+          summary: Grafana is down
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

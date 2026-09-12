@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-alloy
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.alloy
+      rules:
+      - alert: AlloyDown
+        expr: max(up{job="alloy"}) == 0 or absent(up{job="alloy"})
+        for: 2m
+        labels:
+          severity: critical
+          service: alloy
+        annotations:
+          summary: Grafana Alloy has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

@@ -124,3 +124,7 @@ Jaeger all-in-one in namespace `jaeger` (memory store, no PVC). UI at `/ui/jaege
 ## Grafana dashboards
 
 Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnabled: false`). Custom JSON lives in `helmfile/dashboards/<folder>/` — same layout as the GazProm stand (`k8s`, `loki`, `traefik`, `jaeger-opensearch`). Alloy and OTel folders were added for this lab. A helmfile hook loads them into ConfigMaps; the Grafana sidecar puts each directory in its own folder.
+
+## Alerts
+
+Basic service-down rules live in `helmfile/alerts/<service>/` (`prometheus`, `grafana`, `alertmanager`, `loki`, `alloy`, `traefik`, `jaeger`, `otel`, `k8s`). A helmfile `postsync` hook applies them as `PrometheusRule` objects (`release: kube-prometheus-stack`). They fire when `max(up{job=...}) == 0` or the job is absent, for 2m.

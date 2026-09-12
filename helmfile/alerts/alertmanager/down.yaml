@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-alertmanager
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.alertmanager
+      rules:
+      - alert: AlertmanagerDown
+        expr: max(up{job="kube-prometheus-stack-alertmanager"}) == 0 or absent(up{job="kube-prometheus-stack-alertmanager"})
+        for: 2m
+        labels:
+          severity: critical
+          service: alertmanager
+        annotations:
+          summary: Alertmanager has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

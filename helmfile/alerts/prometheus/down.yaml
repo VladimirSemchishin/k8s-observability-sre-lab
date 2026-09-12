@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-prometheus
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.prometheus
+      rules:
+      - alert: PrometheusDown
+        expr: max(up{job="kube-prometheus-stack-prometheus"}) == 0 or absent(up{job="kube-prometheus-stack-prometheus"})
+        for: 2m
+        labels:
+          severity: critical
+          service: prometheus
+        annotations:
+          summary: Prometheus has no healthy targets
+          description: "Job {{ $labels.job }} has been down for 2 minutes."

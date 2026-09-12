@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-otel
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.otel
+      rules:
+      - alert: OtelCollectorDown
+        expr: max(up{job="opentelemetry-collector"}) == 0 or absent(up{job="opentelemetry-collector"})
+        for: 2m
+        labels:
+          severity: critical
+          service: otel
+        annotations:
+          summary: OpenTelemetry Collector is down
+          description: "Job {{ $labels.job }} has been down for 2 minutes."
