@@ -1,6 +1,7 @@
 # After the cluster exists: one command
 #   helmfile -f helmfile/helmfile.yaml sync
-# Order: presync hook (traefik.io CRDs) → Traefik → Kubernetes Dashboard.
+# Order: presync hook (traefik.io CRDs) → Traefik → Kubernetes Dashboard →
+#   presync hook (prometheus-operator CRDs) → kube-prometheus-stack.
 # skipDeps: charts are vendored under helm-charts/ (official helm repo is 404).
 
 helmDefaults:
@@ -12,3 +13,4 @@ helmDefaults:
 bases:
   - releases/traefik.yaml
   - releases/kubernetes-dashboard.yaml
+  - releases/kube-prometheus-stack.yaml

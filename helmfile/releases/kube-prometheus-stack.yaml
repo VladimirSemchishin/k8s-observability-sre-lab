@@ -1,0 +1,22 @@
+releases:
+  - name: kube-prometheus-stack
+    namespace: monitoring
+    chart: helm-charts/kube-prometheus-stack-90.1.1.tgz
+    needs:
+      - traefik/traefik
+    labels:
+      stack: monitoring
+    values:
+      - values/kube-prometheus-stack/common.yaml
+      - values/kube-prometheus-stack/routes.yaml
+    missingFileHandler: Error
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: kubectl
+        args:
+          - apply
+          - --server-side
+          - --force-conflicts
+          - -f
+          - helm-charts/prometheus-operator-crds/templates

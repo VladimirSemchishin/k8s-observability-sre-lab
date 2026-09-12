@@ -7,7 +7,7 @@ Task: https://github.com/VladimirSemchishin/tasks/issues/1
 
 ```
 terraform/     # VPC + DOKS (Spaces tfstate)
-helmfile/      # Traefik + Kubernetes Dashboard (local charts + values + releases)
+helmfile/      # Traefik + Dashboard + kube-prometheus-stack (local charts + values + releases)
 ```
 
 ## What Terraform creates
@@ -78,6 +78,7 @@ Official charts vendored under `helmfile/helm-charts/`:
 
 - Traefik `41.5.0` / `v3.7.13` — `traefik.io` CRDs applied by a `presync` hook
 - Kubernetes Dashboard `7.14.0` (last official release; project archived, helm repo 404). Kong stays in-cluster; Traefik is the edge.
+- kube-prometheus-stack `90.1.1` / Operator `v0.93.1` as `helm-charts/kube-prometheus-stack-90.1.1.tgz`. Prometheus Operator CRDs (`prometheus-operator-crds` 31.0.1 slim extract) applied by a `presync` hook — not a Helm release (same size reason as Traefik).
 
 One command after the cluster exists (`skipDeps` is set — charts are local):
 
@@ -91,8 +92,11 @@ UIs (Traefik default self-signed cert):
 
 - Traefik: `https://<lb-ip>/ui/traefik`
 - Kubernetes Dashboard: `https://<lb-ip>/ui/kubernetes-dashboard`
+- Grafana: `https://<lb-ip>/ui/grafana`
+- Prometheus: `https://<lb-ip>/ui/prometheus`
+- Alertmanager: `https://<lb-ip>/ui/alertmanager` (Telegram later)
 
-Edge login for Traefik `/ui/traefik`: **admin / admin**.
+Edge login for Traefik `/ui/traefik`, Grafana, Prometheus, Alertmanager: **admin / admin** (`ui-auth` basicAuth, `removeHeader: true`). Grafana login form is off (anonymous Admin). Prometheus/Grafana use cookies, not Bearer, so they stay on shared basicAuth.
 
 Dashboard `/ui/kubernetes-dashboard`: **admin / admin** once (cookie gate). Traefik basicAuth is not used here — it 401-loops when the SPA sends `Authorization: Bearer`. After the cookie, helmfile injects the `admin-user` SA token so v7 skips the token form. Token is not in git.
 
