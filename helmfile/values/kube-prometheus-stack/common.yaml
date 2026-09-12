@@ -61,6 +61,7 @@ grafana:
   additionalDataSources:
     - name: Loki
       type: loki
+      uid: loki
       access: proxy
       url: http://loki.loki.svc.cluster.local:3100
       jsonData:

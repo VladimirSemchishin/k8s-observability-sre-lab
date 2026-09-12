@@ -29,3 +29,8 @@ releases:
         command: bash
         args:
           - scripts/apply-telegram-local.sh
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/ensure-grafana-loki.sh
