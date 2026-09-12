@@ -7,6 +7,4 @@ releases:
     values:
       - values/traefik/common.yaml
       - values/traefik/routes.yaml
-    needs:
-      - traefik/traefik-crds
     missingFileHandler: Error

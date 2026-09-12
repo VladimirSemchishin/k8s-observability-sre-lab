@@ -1,12 +1,12 @@
 # Lab helmfile. Style: chatbot-infra-helm (local charts + values + releases).
 # Step 3: Traefik only. Later stacks add a file under releases/.
+# CRDs: kubectl apply -f helm-charts/traefik-crds/crds-files/traefik
+# (full traefik-crds chart is >1MiB and does not fit a Helm release Secret).
 
 helmDefaults:
   wait: true
   timeout: 600
   createNamespace: true
-  forceConflicts: true
 
 bases:
-  - releases/traefik-crds.yaml
   - releases/traefik.yaml

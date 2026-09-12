@@ -76,9 +76,11 @@ terraform -chdir=terraform/bootstrap destroy
 
 Official charts vendored under `helmfile/helm-charts/` (`traefik` 41.5.0 / `v3.7.13`, `traefik-crds` 1.18.0).
 
+CRDs first (the vendored `traefik-crds` chart is too large for a Helm release Secret):
+
 ```bash
+helmfile/scripts/install-traefik-crds.sh
 helmfile -f helmfile/helmfile.yaml template
-# apply only after the template is checked
 helmfile -f helmfile/helmfile.yaml apply
 ```
 
