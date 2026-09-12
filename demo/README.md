@@ -28,6 +28,8 @@ Grafana Prometheus dashboard + Prometheus UI (query, alerts, targets)
 
 ![dashboard](prometheus/dashboard.png)
 
+![dashboard-overview](prometheus/dashboard-overview.png)
+
 ![ui-alerts](prometheus/ui-alerts.png)
 
 ![ui-query](prometheus/ui-query.png)
