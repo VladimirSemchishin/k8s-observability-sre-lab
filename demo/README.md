@@ -4,7 +4,7 @@ Live UIs from the lab. Open a folder, or browse below.
 
 ## k8s
 
-Cluster compute, namespace workloads, PVCs, networking
+Cluster compute, namespace workloads, PVCs, networking, Kubernetes Dashboard UI
 
 ![dashboard-compute-cluster](k8s/dashboard-compute-cluster.png)
 
@@ -13,6 +13,8 @@ Cluster compute, namespace workloads, PVCs, networking
 ![dashboard-networking-cluster](k8s/dashboard-networking-cluster.png)
 
 ![dashboard-persistent-volumes](k8s/dashboard-persistent-volumes.png)
+
+![ui-kubernetes-dashboard](k8s/ui-kubernetes-dashboard.png)
 
 ## loki
 
