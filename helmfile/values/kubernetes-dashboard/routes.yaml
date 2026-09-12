@@ -1,4 +1,4 @@
-# Traefik edge: /ui/dashboard
+# Traefik edge: /ui/kubernetes-dashboard
 # No ui-auth here: Dashboard v7 sends Authorization: Bearer, which collides with
 # HTTP Basic on the same header (HTML 401 vs API 401). Token is the gate.
 # Official extras.manifests: https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/charts/kubernetes-dashboard/templates/extras/manifests.yaml
@@ -22,7 +22,7 @@ extras:
       spec:
         stripPrefix:
           prefixes:
-            - /ui/dashboard
+            - /ui/kubernetes-dashboard
     - apiVersion: traefik.io/v1alpha1
       kind: IngressRoute
       metadata:
@@ -33,7 +33,7 @@ extras:
         entryPoints:
           - websecure
         routes:
-          - match: PathPrefix(`/ui/dashboard`)
+          - match: PathPrefix(`/ui/kubernetes-dashboard`)
             kind: Rule
             middlewares:
               - name: dashboard-strip-prefix

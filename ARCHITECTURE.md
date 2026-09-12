@@ -28,7 +28,7 @@ UI list:
 - Alertmanager — `/ui/alertmanager`
 - Jaeger — `/ui/jaeger`
 - Traefik dashboard — `/ui/traefik`
-- Official **Kubernetes Dashboard** — `/ui/dashboard`
+- Official **Kubernetes Dashboard** — `/ui/kubernetes-dashboard`
 - **Not** kube-web-view
 
 ## Observability stack

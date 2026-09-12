@@ -90,11 +90,11 @@ helmfile -f helmfile/helmfile.yaml sync
 UIs (Traefik default self-signed cert):
 
 - Traefik: `https://<lb-ip>/ui/traefik`
-- Kubernetes Dashboard: `https://<lb-ip>/ui/dashboard`
+- Kubernetes Dashboard: `https://<lb-ip>/ui/kubernetes-dashboard`
 
 Edge login for Traefik `/ui/traefik`: **admin / admin**.
 
-Dashboard `/ui/dashboard` is token-only (v7 uses `Authorization: Bearer`, so HTTP Basic on the same host breaks the SPA):
+Dashboard `/ui/kubernetes-dashboard` is token-only (v7 uses `Authorization: Bearer`, so HTTP Basic on the same host breaks the SPA):
 
 ```bash
 kubectl -n kubernetes-dashboard create token admin-user
