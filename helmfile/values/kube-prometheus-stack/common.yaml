@@ -12,10 +12,18 @@ defaultRules:
     etcd: false
     kubeSchedulerAlerting: false
     kubeSchedulerRecording: false
+    kubeControllerManager: false
+    kubeProxy: false
+  disabled:
+    Watchdog: true
 
 kubeScheduler:
   enabled: false
 kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeProxy:
   enabled: false
 windowsMonitoring:
   enabled: false
