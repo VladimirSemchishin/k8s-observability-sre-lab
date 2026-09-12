@@ -59,8 +59,8 @@ grafana:
       org_name: Main Org.
       org_role: Admin
   # Sidecar writes this file but reload is 403 (anonymous Admin).
-  # postsync scripts/ensure-grafana-loki.sh creates the same DS via
-  # in-cluster Grafana/Loki Service DNS after Loki is up.
+  # postsync scripts/ensure-grafana-datasources.sh POSTs Prom/AM/Loki
+  # via in-cluster Service DNS after Loki is up.
   additionalDataSources:
     - name: Loki
       type: loki

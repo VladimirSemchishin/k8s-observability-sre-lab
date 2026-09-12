@@ -15,4 +15,4 @@ releases:
         showlogs: true
         command: bash
         args:
-          - scripts/ensure-grafana-loki.sh
+          - scripts/ensure-grafana-datasources.sh
