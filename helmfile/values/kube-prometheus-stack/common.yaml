@@ -42,6 +42,9 @@ grafana:
       memory: 256Mi
     limits:
       memory: 768Mi
+  serviceMonitor:
+    enabled: true
+    path: /ui/grafana/metrics
   grafana.ini:
     server:
       root_url: https://134.199.251.14/ui/grafana/
