@@ -85,4 +85,6 @@ monitoring:
   alerts:
     enabled: false
   serviceMonitor:
-    enabled: false
+    enabled: true
+    labels:
+      release: kube-prometheus-stack

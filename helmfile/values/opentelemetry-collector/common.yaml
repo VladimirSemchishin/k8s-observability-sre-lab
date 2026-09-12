@@ -45,7 +45,7 @@ ports:
   zipkin:
     enabled: false
   metrics:
-    enabled: false
+    enabled: true
 
 # Lists replace chart defaults (helm does not merge lists).
 # https://opentelemetry.io/docs/platforms/kubernetes/helm/collector/
@@ -69,3 +69,8 @@ config:
         receivers: [otlp]
         processors: [memory_limiter, batch]
         exporters: [otlp_grpc/jaeger]
+
+serviceMonitor:
+  enabled: true
+  extraLabels:
+    release: kube-prometheus-stack

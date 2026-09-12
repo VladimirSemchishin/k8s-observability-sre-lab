@@ -24,6 +24,16 @@ thanosRuler:
 
 grafana:
   enabled: true
+  defaultDashboardsEnabled: false
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      folderAnnotation: grafana_folder
+      searchNamespace: ALL
+      provider:
+        foldersFromFilesStructure: false
   ingress:
     enabled: false
   service:

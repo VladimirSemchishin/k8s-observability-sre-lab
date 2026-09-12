@@ -33,3 +33,20 @@ extraObjects:
             - name: jaeger
               port: 16686
       tls: {}
+
+  - apiVersion: monitoring.coreos.com/v1
+    kind: ServiceMonitor
+    metadata:
+      name: jaeger
+      namespace: jaeger
+      labels:
+        release: kube-prometheus-stack
+    spec:
+      selector:
+        matchLabels:
+          app.kubernetes.io/instance: jaeger
+          app.kubernetes.io/name: jaeger
+      endpoints:
+        - port: internal-metrics
+          interval: 30s
+          path: /metrics

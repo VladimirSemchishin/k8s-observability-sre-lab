@@ -24,8 +24,18 @@ releases:
           - --force-conflicts
           - -f
           - helm-charts/prometheus-operator-crds/templates
+      - events: ["presync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/apply-grafana-dashboards.sh
       - events: ["postsync"]
         showlogs: true
         command: bash
         args:
           - scripts/apply-telegram-local.sh
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/apply-grafana-dashboards.sh

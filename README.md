@@ -120,3 +120,7 @@ Telegram: placeholders in `helmfile/values/kube-prometheus-stack/telegram.yaml`.
 ## Step 7 — Traces (Jaeger + OpenTelemetry)
 
 Jaeger all-in-one in namespace `jaeger` (memory store, no PVC). UI at `/ui/jaeger` behind Traefik `ui-auth` + `stripPrefix`. Collector Deployment in `opentelemetry-collector` receives OTLP (ClusterIP 4317/4318) and exports to `jaeger.jaeger.svc.cluster.local:4317`. Grafana Jaeger datasource is the same in-cluster query URL (sidecar reload is 403; postsync hook POSTs it).
+
+## Grafana dashboards
+
+Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnabled: false`). Custom JSON lives in `helmfile/dashboards/<folder>/` — same layout as the GazProm stand (`000-k8s`, `001-loki`, `005-traefik`, `007-jaeger-opensearch`). Alloy and OTel folders were added for this lab. A helmfile hook loads them into ConfigMaps; the Grafana sidecar puts each directory in its own folder.

@@ -73,8 +73,12 @@ persistence:
 
 metrics:
   prometheus:
+    service:
+      enabled: true
     serviceMonitor:
-      enabled: false
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
 
 service:
   enabled: true
@@ -91,6 +95,11 @@ service:
     type: LoadBalancer
 
 ports:
+  metrics:
+    port: 9100
+    expose:
+      default: false
+    protocol: TCP
   web:
     expose:
       default: true

@@ -1,0 +1,50 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "gridPos": {
+        "h": 18,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# Jaeger\n\nTraces live in **Jaeger UI**, not in this panel.\n\n## Jaeger UI\n\n- https://134.199.251.14/ui/jaeger (`admin` / `admin`)\n- In-cluster query: `http://jaeger.jaeger.svc.cluster.local:16686`\n\n## Grafana\n\nDatasource **Jaeger** (`uid: jaeger`) \u2192 Explore. Alloy/OTel send OTLP to `jaeger.jaeger.svc:4317`.\n\nOpenSearch is not used on this stand (in-memory store). Folder name kept as `007-jaeger-opensearch` to match the GazProm layout.\n",
+        "mode": "markdown"
+      },
+      "title": "",
+      "transparent": true,
+      "type": "text"
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 39,
+  "tags": [
+    "jaeger"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Jaeger",
+  "uid": "jaeger-opensearch-overview",
+  "version": 1
+}
