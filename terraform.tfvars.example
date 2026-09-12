@@ -1,0 +1,9 @@
+do_token           = ""
+spaces_access_id   = ""
+spaces_secret_key  = ""
+region             = "nyc3"
+project_name       = "k8s-observability-sre-lab"
+kubernetes_version = "1.35.7-do.4"
+node_size          = "s-2vcpu-4gb"
+node_count         = 2
+ha                 = false

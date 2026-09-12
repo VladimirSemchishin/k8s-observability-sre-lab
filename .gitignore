@@ -1,0 +1,12 @@
+.idea
+.DS_Store
+*.pem
+terraform.tfvars
+secrets.tfvars
+backend.conf
+terraform.tfstate
+terraform.tfstate.backup
+.terraform
+.terraform.lock.hcl
+*_kubeconfig.yaml
+kubeconfig
