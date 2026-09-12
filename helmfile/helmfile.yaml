@@ -1,6 +1,6 @@
 # After the cluster exists: one command
 #   helmfile -f helmfile/helmfile.yaml sync
-# Order: presync hook (traefik.io CRDs) → Traefik → Kubernetes Dashboard.
+# Order: presync hook (traefik.io CRDs) → Traefik → Kubernetes Dashboard → Jaeger → OTel collector.
 # skipDeps: charts are vendored under helm-charts/ (official helm repo is 404).
 
 helmDefaults:
@@ -12,3 +12,5 @@ helmDefaults:
 bases:
   - releases/traefik.yaml
   - releases/kubernetes-dashboard.yaml
+  - releases/jaeger.yaml
+  - releases/opentelemetry-collector.yaml

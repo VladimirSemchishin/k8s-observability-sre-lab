@@ -1,0 +1,12 @@
+releases:
+  - name: jaeger
+    namespace: jaeger
+    chart: helm-charts/jaeger
+    needs:
+      - traefik/traefik
+    labels:
+      stack: traces
+    values:
+      - values/jaeger/common.yaml
+      - values/jaeger/routes.yaml
+    missingFileHandler: Error

@@ -7,7 +7,7 @@ Task: https://github.com/VladimirSemchishin/tasks/issues/1
 
 ```
 terraform/     # VPC + DOKS (Spaces tfstate)
-helmfile/      # Traefik + Kubernetes Dashboard (local charts + values + releases)
+helmfile/      # Traefik + Kubernetes Dashboard + Jaeger + OTel (local charts + values + releases)
 ```
 
 ## What Terraform creates
@@ -78,6 +78,8 @@ Official charts vendored under `helmfile/helm-charts/`:
 
 - Traefik `41.5.0` / `v3.7.13` — `traefik.io` CRDs applied by a `presync` hook
 - Kubernetes Dashboard `7.14.0` (last official release; project archived, helm repo 404). Kong stays in-cluster; Traefik is the edge.
+- Jaeger `4.13.1` / `2.20.0` all-in-one (in-memory, no Operator / Tempo / OpenSearch)
+- OpenTelemetry Collector `0.173.1` / `0.160.0` Deployment (OTLP in → Jaeger)
 
 One command after the cluster exists (`skipDeps` is set — charts are local):
 
@@ -91,9 +93,12 @@ UIs (Traefik default self-signed cert):
 
 - Traefik: `https://<lb-ip>/ui/traefik`
 - Kubernetes Dashboard: `https://<lb-ip>/ui/kubernetes-dashboard`
+- Jaeger: `https://<lb-ip>/ui/jaeger`
 
 Edge login for Traefik `/ui/traefik`: **admin / admin**.
 
 Dashboard `/ui/kubernetes-dashboard`: **admin / admin** once (cookie gate). Traefik basicAuth is not used here — it 401-loops when the SPA sends `Authorization: Bearer`. After the cookie, helmfile injects the `admin-user` SA token so v7 skips the token form. Token is not in git.
+
+Jaeger `/ui/jaeger` has no extra Traefik gate (no `ui-auth`). The UI is served under a path prefix via stripPrefix; Jaeger v2.18+ detects `/ui/jaeger` from the browser URL.
 
 Do not commit `terraform.tfvars` or `*.tfstate`.
