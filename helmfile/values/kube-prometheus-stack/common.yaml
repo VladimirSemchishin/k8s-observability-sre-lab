@@ -33,7 +33,7 @@ grafana:
       folderAnnotation: grafana_folder
       searchNamespace: ALL
       provider:
-        foldersFromFilesStructure: false
+        foldersFromFilesStructure: true
   ingress:
     enabled: false
   service:
