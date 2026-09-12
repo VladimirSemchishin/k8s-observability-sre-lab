@@ -2,9 +2,17 @@ releases:
   - name: loki
     namespace: loki
     chart: helm-charts/loki
+    needs:
+      - monitoring/kube-prometheus-stack
     labels:
       stack: logs
     values:
       - values/loki/common.yaml
       - values/loki/routes.yaml
     missingFileHandler: Error
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/ensure-grafana-loki.sh
