@@ -1,0 +1,70 @@
+# Traefik edge: /ui/dashboard
+# No ui-auth here: Dashboard v7 sends Authorization: Bearer, which collides with
+# HTTP Basic on the same header (HTML 401 vs API 401). Token is the gate.
+# Official extras.manifests: https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/charts/kubernetes-dashboard/templates/extras/manifests.yaml
+# Sample admin-user: https://github.com/kubernetes-retired/dashboard/blob/kubernetes-dashboard-7.14.0/docs/user/access-control/creating-sample-user.md
+# Kong self-signed: ServersTransport insecureSkipVerify (https://github.com/kubernetes-retired/dashboard/issues/10109)
+
+extras:
+  manifests:
+    - apiVersion: traefik.io/v1alpha1
+      kind: ServersTransport
+      metadata:
+        name: dashboard-kong-insecure
+        namespace: kubernetes-dashboard
+      spec:
+        insecureSkipVerify: true
+    - apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: dashboard-strip-prefix
+        namespace: kubernetes-dashboard
+      spec:
+        stripPrefix:
+          prefixes:
+            - /ui/dashboard
+    - apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: kubernetes-dashboard
+        namespace: kubernetes-dashboard
+      spec:
+        ingressClassName: traefik
+        entryPoints:
+          - websecure
+        routes:
+          - match: PathPrefix(`/ui/dashboard`)
+            kind: Rule
+            middlewares:
+              - name: dashboard-strip-prefix
+            services:
+              - name: kubernetes-dashboard-kong-proxy
+                port: 443
+                scheme: https
+                serversTransport: dashboard-kong-insecure
+        tls: {}
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: admin-user
+        namespace: kubernetes-dashboard
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: admin-user-token
+        namespace: kubernetes-dashboard
+        annotations:
+          kubernetes.io/service-account.name: admin-user
+      type: kubernetes.io/service-account-token
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: kubernetes-dashboard-admin-user
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+          name: admin-user
+          namespace: kubernetes-dashboard

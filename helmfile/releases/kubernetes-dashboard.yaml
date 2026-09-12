@@ -1,0 +1,12 @@
+releases:
+  - name: kubernetes-dashboard
+    namespace: kubernetes-dashboard
+    chart: helm-charts/kubernetes-dashboard
+    needs:
+      - traefik/traefik
+    labels:
+      stack: dashboard
+    values:
+      - values/kubernetes-dashboard/common.yaml
+      - values/kubernetes-dashboard/routes.yaml
+    missingFileHandler: Error

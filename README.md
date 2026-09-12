@@ -7,7 +7,7 @@ Task: https://github.com/VladimirSemchishin/tasks/issues/1
 
 ```
 terraform/     # VPC + DOKS (Spaces tfstate)
-helmfile/      # Traefik (local charts + values + releases)
+helmfile/      # Traefik + Kubernetes Dashboard (local charts + values + releases)
 ```
 
 ## What Terraform creates
@@ -72,19 +72,32 @@ terraform -chdir=terraform destroy
 terraform -chdir=terraform/bootstrap destroy
 ```
 
-## Helmfile (Traefik)
+## Helmfile
 
-Official Traefik chart vendored under `helmfile/helm-charts/` (`traefik` 41.5.0 / `v3.7.13`).
-`traefik.io` CRDs sit in `helmfile/helm-charts/traefik-io-crds` and are applied by a helmfile `presync` hook — one command, no extra kubectl.
+Official charts vendored under `helmfile/helm-charts/`:
+
+- Traefik `41.5.0` / `v3.7.13` — `traefik.io` CRDs applied by a `presync` hook
+- Kubernetes Dashboard `7.14.0` (last official release; project archived, helm repo 404). Kong stays in-cluster; Traefik is the edge.
+
+One command after the cluster exists (`skipDeps` is set — charts are local):
 
 ```bash
 helmfile -f helmfile/helmfile.yaml sync
 ```
 
-`sync` = hook (CRDs) + Helm upgrade, без плагинов. `apply` то же плюс diff и требует `helm-diff`.
+`sync` = hook (CRDs) + Helm upgrade, no plugins. `apply` also needs `helm-diff`.
 
-Dashboard: `https://<lb-ip>/ui/traefik` (Traefik default self-signed cert).
+UIs (Traefik default self-signed cert):
 
-Default UI login (Traefik basic auth, all `/ui/*`): **admin / admin**. App default auth stays off.
+- Traefik: `https://<lb-ip>/ui/traefik`
+- Kubernetes Dashboard: `https://<lb-ip>/ui/dashboard`
+
+Edge login for Traefik `/ui/traefik`: **admin / admin**.
+
+Dashboard `/ui/dashboard` is token-only (v7 uses `Authorization: Bearer`, so HTTP Basic on the same host breaks the SPA):
+
+```bash
+kubectl -n kubernetes-dashboard create token admin-user
+```
 
 Do not commit `terraform.tfvars` or `*.tfstate`.

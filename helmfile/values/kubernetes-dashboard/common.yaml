@@ -1,0 +1,74 @@
+# Official kubernetes-dashboard 7.14.0 (archived upstream).
+# Chart: https://github.com/kubernetes-retired/dashboard/releases/tag/kubernetes-dashboard-7.14.0
+# Helm repo https://kubernetes.github.io/dashboard/ is 404 (2026-09-12).
+# Kong stays on (v7 hard dependency). Traefik is the cluster edge only.
+
+app:
+  mode: dashboard
+  ingress:
+    enabled: false
+
+auth:
+  service:
+    type: ClusterIP
+  containers:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+api:
+  service:
+    type: ClusterIP
+  containers:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 400Mi
+
+web:
+  service:
+    type: ClusterIP
+  containers:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+metricsScraper:
+  enabled: true
+  service:
+    type: ClusterIP
+  containers:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+metrics-server:
+  enabled: false
+
+cert-manager:
+  enabled: false
+
+nginx:
+  enabled: false
+
+kong:
+  enabled: true
+  proxy:
+    type: ClusterIP
+    http:
+      enabled: false
