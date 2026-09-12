@@ -1,0 +1,2 @@
+# Loki has no rich UI (Grafana is Step 5). No Traefik IngressRoute.
+extraObjects: []

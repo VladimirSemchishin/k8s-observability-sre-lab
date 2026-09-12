@@ -9,6 +9,10 @@ releases:
     values:
       - values/kube-prometheus-stack/common.yaml
       - values/kube-prometheus-stack/routes.yaml
+      - values/kube-prometheus-stack/telegram.yaml
+      # Gitignored. Copy telegram.local.yaml.example and fill bot token / chat id.
+      - path: values/kube-prometheus-stack/telegram.local.yaml
+        missingFileHandler: Warn
     missingFileHandler: Error
     hooks:
       - events: ["presync"]

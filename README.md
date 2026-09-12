@@ -7,7 +7,7 @@ Task: https://github.com/VladimirSemchishin/tasks/issues/1
 
 ```
 terraform/     # VPC + DOKS (Spaces tfstate)
-helmfile/      # Traefik + Dashboard + kube-prometheus-stack (local charts + values + releases)
+helmfile/      # Traefik + Dashboard + kube-prometheus-stack + Loki + Alloy
 ```
 
 ## What Terraform creates
@@ -79,6 +79,8 @@ Official charts vendored under `helmfile/helm-charts/`:
 - Traefik `41.5.0` / `v3.7.13` — `traefik.io` CRDs applied by a `presync` hook
 - Kubernetes Dashboard `7.14.0` (last official release; project archived, helm repo 404). Kong stays in-cluster; Traefik is the edge.
 - kube-prometheus-stack `90.1.1` / Operator `v0.93.1` as `helm-charts/kube-prometheus-stack-90.1.1.tgz`. Prometheus Operator CRDs (`prometheus-operator-crds` 31.0.1 slim extract) applied by a `presync` hook — not a Helm release (same size reason as Traefik).
+- Loki `18.13.0` / `3.7.7` (grafana-community) — monolithic, filesystem PVC, no MinIO
+- Grafana Alloy `1.12.1` / `v1.19.2` — DaemonSet, cluster/pod logs → Loki
 
 One command after the cluster exists (`skipDeps` is set — charts are local):
 
@@ -94,10 +96,20 @@ UIs (Traefik default self-signed cert):
 - Kubernetes Dashboard: `https://<lb-ip>/ui/kubernetes-dashboard`
 - Grafana: `https://<lb-ip>/ui/grafana`
 - Prometheus: `https://<lb-ip>/ui/prometheus`
-- Alertmanager: `https://<lb-ip>/ui/alertmanager` (Telegram later)
+- Alertmanager: `https://<lb-ip>/ui/alertmanager` (kube-prometheus-stack; routePrefix, no stripPrefix)
+
+Loki has no UI here. Alloy pushes to `http://loki.loki.svc.cluster.local:3100`.
 
 Edge login for Traefik `/ui/traefik`, Grafana, Prometheus, Alertmanager: **admin / admin** (`ui-auth` basicAuth, `removeHeader: true`). Grafana login form is off (anonymous Admin). Prometheus/Grafana use cookies, not Bearer, so they stay on shared basicAuth.
 
 Dashboard `/ui/kubernetes-dashboard`: **admin / admin** once (cookie gate). Traefik basicAuth is not used here — it 401-loops when the SPA sends `Authorization: Bearer`. After the cookie, helmfile injects the `admin-user` SA token so v7 skips the token form. Token is not in git.
 
 Do not commit `terraform.tfvars` or `*.tfstate`.
+
+## Step 6 — Loki logs + Telegram on stack Alertmanager
+
+Logs: Alloy DaemonSet (clustering on so each node does not tail the whole cluster) ships pod logs to Loki in namespace `loki`. Persistence is a 10Gi filesystem PVC (DOKS default StorageClass). Memcached caches and MinIO are off to fit 2×4 GiB nodes.
+
+Alerts: **one** Alertmanager — kube-prometheus-stack in namespace `monitoring`, UI at `/ui/alertmanager` (`routePrefix`, no stripPrefix). Do not add a second AM.
+
+Telegram: placeholders in `helmfile/values/kube-prometheus-stack/telegram.yaml`. Real bot token / chat id go in gitignored `telegram.local.yaml` (copy `telegram.local.yaml.example`). helmfile warns if the local file is missing. This overlay does not change the Traefik IngressRoute or `alertmanagerSpec.routePrefix`.

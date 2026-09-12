@@ -1,0 +1,10 @@
+releases:
+  - name: loki
+    namespace: loki
+    chart: helm-charts/loki
+    labels:
+      stack: logs
+    values:
+      - values/loki/common.yaml
+      - values/loki/routes.yaml
+    missingFileHandler: Error
