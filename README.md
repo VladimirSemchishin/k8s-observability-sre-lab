@@ -25,6 +25,11 @@ A working Kubernetes cluster plus:
 
 This is a lab, not HA production. Replicas stay at 1 so the stack fits two 4 GiB nodes. Jaeger keeps traces in memory.
 
+
+## Screenshots
+
+See [`demo/`](./demo/) — one folder per service (Grafana dashboards and, where it exists, the service UI).
+
 ## Architecture
 
 ```mermaid
