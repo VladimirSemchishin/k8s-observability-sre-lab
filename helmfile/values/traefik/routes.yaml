@@ -1,7 +1,5 @@
-# extraObjects: shared UI basicAuth + HTTP→HTTPS.
-# Hash from TRAEFIK_BASICAUTH_HASH (htpasswd bcrypt). Not committed.
-# Other /ui/<service> IngressRoutes land with those stacks (Steps 4–7), same ui-auth middleware.
-{{- $hash := requiredEnv "TRAEFIK_BASICAUTH_HASH" }}
+# Shared UI basicAuth + HTTP→HTTPS.
+# Lab default: admin / admin (htpasswd bcrypt). Same middleware for later /ui/* routes.
 extraObjects:
   - apiVersion: v1
     kind: Secret
@@ -11,7 +9,7 @@ extraObjects:
     type: Opaque
     stringData:
       users: |
-        admin:{{ $hash }}
+        admin:$2b$10$vei2EDYFvrpI8v.xHGhCzeTudhuZ4L7SCICTKabr7A2HBrKsMOeCG
   - apiVersion: traefik.io/v1alpha1
     kind: Middleware
     metadata:

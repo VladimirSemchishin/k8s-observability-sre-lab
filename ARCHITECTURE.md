@@ -20,7 +20,7 @@ Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces,
 - Traefik as the edge LB
 - Path-prefix: `https://<lb-ip>/ui/<service>`
 - Extra strip-prefix / root-url config is expected so Grafana, Dashboard, and Jaeger work behind a path
-- Traefik basic auth in front; disable default auth on the apps behind it
+- Traefik basic auth in front (`admin` / `admin`); disable default auth on the apps behind it
 
 UI list:
 - Grafana — `/ui/grafana`

@@ -6,7 +6,7 @@ releases:
       stack: traefik
     values:
       - values/traefik/common.yaml
-      - values/traefik/routes.yaml.gotmpl
+      - values/traefik/routes.yaml
     needs:
       - traefik/traefik-crds
     missingFileHandler: Error

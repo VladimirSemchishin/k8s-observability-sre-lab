@@ -77,12 +77,13 @@ terraform -chdir=terraform/bootstrap destroy
 Official charts vendored under `helmfile/helm-charts/` (`traefik` 41.5.0 / `v3.7.13`, `traefik-crds` 1.18.0).
 
 ```bash
-export TRAEFIK_BASICAUTH_HASH='...'   # bcrypt htpasswd hash; see helmfile/.env.helmfile.example
 helmfile -f helmfile/helmfile.yaml template
 # apply only after the template is checked
 helmfile -f helmfile/helmfile.yaml apply
 ```
 
-Dashboard: `https://<lb-ip>/ui/traefik` (Traefik default self-signed cert). Login `admin`. Other `/ui/*` routes land with those stacks.
+Dashboard: `https://<lb-ip>/ui/traefik` (Traefik default self-signed cert).
 
-Do not commit `terraform.tfvars`, `*.tfstate`, or `.env.helmfile`.
+Default UI login (Traefik basic auth, all `/ui/*`): **admin / admin**. App default auth stays off.
+
+Do not commit `terraform.tfvars` or `*.tfstate`.
