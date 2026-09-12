@@ -52,6 +52,8 @@ Alertmanager dashboard, UI, Telegram delivery
 
 ![telegram](alertmanager/telegram.png)
 
+![ui-auth](alertmanager/ui-auth.png)
+
 ![ui](alertmanager/ui.png)
 
 ## traefik
@@ -61,6 +63,8 @@ Traefik Ingress dashboard + Traefik UI
 ![dashboard](traefik/dashboard.png)
 
 ![ui](traefik/ui.png)
+
+![ui-auth](traefik/ui-auth.png)
 
 ## jaeger
 
