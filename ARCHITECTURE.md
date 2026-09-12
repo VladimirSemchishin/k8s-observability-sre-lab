@@ -1,14 +1,15 @@
 # Architecture (agreed)
 
-Portfolio stand for Gig A. Decisions locked with Vladimir on 2026-09-12. Budget top-up `N` is **not** set.
+Portfolio stand for Gig A. Cloud switched to **DigitalOcean** on 2026-09-12. Budget top-up `N` is **not** set.
 
 ## Goal
-Working EKS observability lab: metrics, logs, traces, alerting, SLO/SLI, FinOps, chaos/load evidence, 2 incident case studies. English README + diagram + short demo later.
+Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces, alerting, SLO/SLI, FinOps, chaos/load evidence, 2 incident case studies. English README + diagram + short demo later.
 
 ## Cluster
-- Amazon **EKS**, managed control plane — **no** self-managed master nodes
-- Worker node group + VPC
-- Dedicated IP / load balancer in front of Traefik
+- **DigitalOcean Kubernetes (DOKS)**, managed control plane — **no** self-managed master nodes
+- **Not** AWS / EKS
+- Worker node pool + DigitalOcean VPC
+- Reserved IP / Load Balancer in front of Traefik
 
 ## Ingress / UI
 - Traefik as the edge LB
@@ -32,11 +33,11 @@ UI list:
 - Traces: OpenTelemetry collectors + **Jaeger** (not Tempo)
 - FinOps: Kubecost and/or $/day, $/namespace (later steps)
 
-## AWS / Terraform
-- Auth: `aws_access_key` + `aws_secret_key` in local `terraform.tfvars` (**gitignored**)
-- Repo ships `terraform.tfvars.example` with empty placeholders only
-- Do not commit credentials
+## DigitalOcean / Terraform
+- Auth: `do_token` (DigitalOcean Personal Access Token) in local `terraform.tfvars` (**gitignored**)
+- Repo ships `terraform.tfvars.example` with an empty `do_token` placeholder only
+- Do not commit the token
 - Account top-up amount `N`: **TBD** — do not assume a number
 
 ## Out of scope for this file
-Instance sizes, region, node count, and dollar budget — still open.
+Droplet/node sizes, region, node count, and dollar budget — still open.
