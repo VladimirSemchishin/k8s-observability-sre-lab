@@ -1,0 +1,71 @@
+# Official open-telemetry/opentelemetry-collector 0.173.1 / app 0.160.0.
+# Chart: https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-collector
+# Deployment (not DaemonSet): receive OTLP, export traces to Jaeger all-in-one.
+
+mode: deployment
+replicaCount: 1
+
+image:
+  repository: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-k8s
+  pullPolicy: IfNotPresent
+
+command:
+  name: otelcol-k8s
+
+clusterRole:
+  create: false
+
+ingress:
+  enabled: false
+
+service:
+  type: ClusterIP
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+useGOMEMLIMIT: true
+
+ports:
+  otlp:
+    enabled: true
+  otlp-http:
+    enabled: true
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
+  metrics:
+    enabled: false
+
+# Lists replace chart defaults (helm does not merge lists).
+# https://opentelemetry.io/docs/platforms/kubernetes/helm/collector/
+config:
+  receivers:
+    jaeger: null
+    zipkin: null
+    prometheus: null
+  exporters:
+    debug: null
+    # Chart 0.171+ / collector >= 0.144: otlp gRPC exporter is otlp_grpc.
+    otlp_grpc/jaeger:
+      endpoint: jaeger.jaeger.svc.cluster.local:4317
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      logs: null
+      metrics: null
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [otlp_grpc/jaeger]

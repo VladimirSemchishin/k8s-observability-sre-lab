@@ -59,8 +59,8 @@ grafana:
       org_name: Main Org.
       org_role: Admin
   # Sidecar writes this file but reload is 403 (anonymous Admin).
-  # postsync scripts/ensure-grafana-datasources.sh POSTs Prom/AM/Loki
-  # via in-cluster Service DNS after Loki is up.
+  # postsync scripts/ensure-grafana-datasources.sh POSTs Prom/AM/Loki/Jaeger
+  # via in-cluster Service DNS (never the Traefik LB).
   additionalDataSources:
     - name: Loki
       type: loki
@@ -70,6 +70,14 @@ grafana:
       jsonData:
         timeout: 60
         maxLines: 1000
+    - name: Jaeger
+      type: jaeger
+      uid: jaeger
+      access: proxy
+      url: http://jaeger.jaeger.svc.cluster.local:16686
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
 
 prometheus:
   ingress:

@@ -1,0 +1,19 @@
+releases:
+  - name: jaeger
+    namespace: jaeger
+    chart: helm-charts/jaeger
+    needs:
+      - traefik/traefik
+      - monitoring/kube-prometheus-stack
+    labels:
+      stack: traces
+    values:
+      - values/jaeger/common.yaml
+      - values/jaeger/routes.yaml
+    missingFileHandler: Error
+    hooks:
+      - events: ["postsync"]
+        showlogs: true
+        command: bash
+        args:
+          - scripts/ensure-grafana-datasources.sh

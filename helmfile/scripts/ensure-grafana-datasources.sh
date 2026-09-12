@@ -10,7 +10,12 @@ POD=ensure-grafana-datasources
 IMAGE=curlimages/curl:8.15.0
 
 kubectl -n "$NS" wait --for=condition=available deploy/kube-prometheus-stack-grafana --timeout=180s
-kubectl -n loki wait --for=condition=ready pod -l app.kubernetes.io/name=loki --timeout=180s
+if kubectl -n loki get pod -l app.kubernetes.io/name=loki --no-headers 2>/dev/null | grep -q .; then
+  kubectl -n loki wait --for=condition=ready pod -l app.kubernetes.io/name=loki --timeout=180s
+fi
+if kubectl -n jaeger get deploy jaeger >/dev/null 2>&1; then
+  kubectl -n jaeger wait --for=condition=available deploy/jaeger --timeout=180s
+fi
 
 kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true >/dev/null
 
@@ -48,6 +53,7 @@ ensure() {
 ensure prometheus "{\"name\":\"Prometheus\",\"type\":\"prometheus\",\"uid\":\"prometheus\",\"access\":\"proxy\",\"isDefault\":true,\"url\":\"http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090/ui/prometheus\",\"jsonData\":{\"httpMethod\":\"POST\",\"timeInterval\":\"30s\"}}"
 ensure alertmanager "{\"name\":\"Alertmanager\",\"type\":\"alertmanager\",\"uid\":\"alertmanager\",\"access\":\"proxy\",\"url\":\"http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093/ui/alertmanager\",\"jsonData\":{\"handleGrafanaManagedAlerts\":false,\"implementation\":\"prometheus\"}}"
 ensure loki "{\"name\":\"Loki\",\"type\":\"loki\",\"uid\":\"loki\",\"access\":\"proxy\",\"url\":\"http://loki.loki.svc.cluster.local:3100\",\"jsonData\":{\"timeout\":60,\"maxLines\":1000}}"
+ensure jaeger "{\"name\":\"Jaeger\",\"type\":\"jaeger\",\"uid\":\"jaeger\",\"access\":\"proxy\",\"url\":\"http://jaeger.jaeger.svc.cluster.local:16686\",\"jsonData\":{\"tracesToLogsV2\":{\"datasourceUid\":\"loki\"}}}"
 '
 
 if ! kubectl -n "$NS" wait --for=jsonpath='{.status.phase}'=Succeeded pod/"$POD" --timeout=90s; then

@@ -1,0 +1,12 @@
+releases:
+  - name: opentelemetry-collector
+    namespace: opentelemetry-collector
+    chart: helm-charts/opentelemetry-collector
+    needs:
+      - jaeger/jaeger
+    labels:
+      stack: traces
+    values:
+      - values/opentelemetry-collector/common.yaml
+      - values/opentelemetry-collector/routes.yaml
+    missingFileHandler: Error

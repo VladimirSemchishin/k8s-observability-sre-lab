@@ -1,0 +1,88 @@
+# Official jaegertracing/jaeger 4.13.1 / app 2.20.0 — overrides only.
+# Chart: https://github.com/jaegertracing/helm-charts/tree/main/charts/jaeger
+# All-in-one Jaeger v2, in-memory store (no PVC, no Operator, no ES/Cassandra).
+
+jaeger:
+  enabled: true
+  replicas: 1
+  image:
+    repository: jaegertracing/jaeger
+    tag: "2.20.0"
+    pullPolicy: IfNotPresent
+  oAuthSidecar:
+    enabled: false
+  ingress:
+    enabled: false
+  httproute:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+spark:
+  enabled: false
+
+esIndexCleaner:
+  enabled: false
+
+esRollover:
+  enabled: false
+
+esLookback:
+  enabled: false
+
+# Slim all-in-one config: OTLP in → memory store. Replaces the image default
+# (100k traces + zipkin/jaeger/adaptive sampling) so the 4 GiB nodes fit.
+# https://www.jaegertracing.io/docs/2.20/deployment/configuration/
+userconfig:
+  service:
+    extensions: [jaeger_storage, jaeger_query, healthcheckv2]
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch]
+        exporters: [jaeger_storage_exporter]
+    telemetry:
+      resource:
+        service.name: jaeger
+      metrics:
+        level: basic
+        readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: 0.0.0.0
+                  port: 8888
+  extensions:
+    healthcheckv2:
+      use_v2: true
+      http:
+        endpoint: 0.0.0.0:13133
+    jaeger_query:
+      # Internal prefix: Traefik stripPrefix forwards /ui/jaeger → /.
+      # External prefix is detected by the UI from the browser URL (v2.18+).
+      # In-cluster (OTel / Grafana) talk to jaeger.jaeger.svc:16686 on /.
+      base_path: /
+      storage:
+        traces: memory_store
+    jaeger_storage:
+      backends:
+        memory_store:
+          memory:
+            max_traces: 10000
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  processors:
+    batch: {}
+  exporters:
+    jaeger_storage_exporter:
+      trace_storage: memory_store

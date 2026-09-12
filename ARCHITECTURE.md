@@ -7,7 +7,7 @@ Working DigitalOcean Kubernetes (DOKS) observability lab: metrics, logs, traces,
 
 ## Repo layout
 - `terraform/` — VPC + DOKS. Remote state in Spaces bucket `tf-state-k8s-observability-sre-lab`.
-- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). One `helmfile sync`: presync hook applies `traefik.io` CRDs, then Traefik, official Kubernetes Dashboard `7.14.0`, prometheus-operator CRDs hook + kube-prometheus-stack `90.1.1`, then Loki + Grafana Alloy (logs). One Alertmanager (stack, ns `monitoring`) owns `/ui/alertmanager`.
+- `helmfile/` — local charts + values + releases (same idea as chatbot-infra-helm). One `helmfile sync`: presync hook applies `traefik.io` CRDs, then Traefik, official Kubernetes Dashboard `7.14.0`, prometheus-operator CRDs hook + kube-prometheus-stack `90.1.1`, then Loki + Grafana Alloy (logs), then Jaeger all-in-one + OpenTelemetry Collector (OTLP → `jaeger.jaeger.svc:4317`). One Alertmanager (stack, ns `monitoring`) owns `/ui/alertmanager`.
 
 ## Cluster
 - **DigitalOcean Kubernetes (DOKS)**, managed control plane — **no** self-managed master nodes

@@ -1,0 +1,3 @@
+# No UI. OTLP stays ClusterIP (4317 gRPC / 4318 HTTP) for in-cluster apps.
+# Chart extraManifests: https://github.com/open-telemetry/opentelemetry-helm-charts
+extraManifests: []

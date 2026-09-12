@@ -1,0 +1,35 @@
+# Traefik edge: /ui/jaeger
+# stripPrefix so Jaeger sees /. Jaeger UI v2.18+ detects /ui/jaeger from the
+# browser URL (X-Forwarded-Prefix is also set by Traefik stripPrefix).
+# ui-auth like Grafana/Prom (cookie/basic). Not a Bearer SPA like Dashboard.
+# Chart extraObjects: https://github.com/jaegertracing/helm-charts
+extraObjects:
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: jaeger-strip-prefix
+      namespace: jaeger
+    spec:
+      stripPrefix:
+        prefixes:
+          - /ui/jaeger
+  - apiVersion: traefik.io/v1alpha1
+    kind: IngressRoute
+    metadata:
+      name: jaeger
+      namespace: jaeger
+    spec:
+      ingressClassName: traefik
+      entryPoints:
+        - websecure
+      routes:
+        - match: PathPrefix(`/ui/jaeger`)
+          kind: Rule
+          middlewares:
+            - name: jaeger-strip-prefix
+            - name: ui-auth
+              namespace: traefik
+          services:
+            - name: jaeger
+              port: 16686
+      tls: {}
