@@ -1,2 +1,5 @@
 tests/
 crds/kustomization.yaml
+
+# Lab: Traefik.io CRDs come from helmfile presync hook, not Hub.
+crds/hub.traefik.io_*.yaml
