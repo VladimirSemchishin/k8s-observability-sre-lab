@@ -1,0 +1,12 @@
+releases:
+  - name: alloy
+    namespace: loki
+    chart: helm-charts/alloy
+    needs:
+      - loki/loki
+    labels:
+      stack: logs
+    values:
+      - values/alloy/common.yaml
+      - values/alloy/routes.yaml
+    missingFileHandler: Error

@@ -1,0 +1,56 @@
+# Step 6 Telegram routing on the existing kube-prometheus-stack Alertmanager.
+# Does not set routePrefix / externalUrl / extraManifests — those stay in common.yaml
+# and routes.yaml (PathPrefix, no stripPrefix).
+#
+# Placeholders render without secrets. Copy telegram.local.yaml.example →
+# telegram.local.yaml (gitignored) for a real bot token and chat id.
+
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+    inhibit_rules:
+      - source_matchers:
+          - 'severity = critical'
+        target_matchers:
+          - 'severity =~ warning|info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+      - source_matchers:
+          - 'severity = warning'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'namespace'
+          - 'alertname'
+      - source_matchers:
+          - 'alertname = InfoInhibitor'
+        target_matchers:
+          - 'severity = info'
+        equal:
+          - 'namespace'
+      - target_matchers:
+          - 'alertname = InfoInhibitor'
+    route:
+      group_by:
+        - namespace
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+      receiver: telegram
+      routes:
+        - receiver: "null"
+          matchers:
+            - alertname = "Watchdog"
+    receivers:
+      - name: "null"
+      - name: telegram
+        telegram_configs:
+          - bot_token: REPLACE_WITH_TELEGRAM_BOT_TOKEN
+            chat_id: 0
+            parse_mode: HTML
+            send_resolved: true
+            disable_notifications: false
+    templates:
+      - /etc/alertmanager/config/*.tmpl

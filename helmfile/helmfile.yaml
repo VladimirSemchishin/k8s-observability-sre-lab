@@ -1,8 +1,10 @@
 # After the cluster exists: one command
 #   helmfile -f helmfile/helmfile.yaml sync
 # Order: presync hook (traefik.io CRDs) → Traefik → Kubernetes Dashboard →
-#   presync hook (prometheus-operator CRDs) → kube-prometheus-stack.
-# skipDeps: charts are vendored under helm-charts/ (official helm repo is 404).
+#   presync hook (prometheus-operator CRDs) → kube-prometheus-stack → Loki → Alloy.
+# skipDeps: charts are vendored under helm-charts/.
+# One Alertmanager: kube-prometheus-stack in ns monitoring owns /ui/alertmanager
+# (routePrefix, no stripPrefix). Telegram: values/kube-prometheus-stack/telegram.yaml.
 
 helmDefaults:
   wait: true
@@ -14,3 +16,5 @@ bases:
   - releases/traefik.yaml
   - releases/kubernetes-dashboard.yaml
   - releases/kube-prometheus-stack.yaml
+  - releases/loki.yaml
+  - releases/alloy.yaml

@@ -1,0 +1,2 @@
+# Alloy UI is not exposed. Logs are queried in Grafana (Step 5).
+extraObjects: []

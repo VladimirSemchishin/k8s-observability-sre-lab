@@ -97,7 +97,7 @@ alertmanager:
   alertmanagerSpec:
     externalUrl: https://134.199.251.14/ui/alertmanager/
     routePrefix: /ui/alertmanager
-    # No PVC — Bravo will add Telegram later
+    # No PVC. Telegram receiver: telegram.yaml (+ gitignored telegram.local.yaml).
 
 prometheusOperator:
   resources:
