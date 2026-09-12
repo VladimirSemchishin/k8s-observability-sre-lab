@@ -123,4 +123,4 @@ Jaeger all-in-one in namespace `jaeger` (memory store, no PVC). UI at `/ui/jaege
 
 ## Grafana dashboards
 
-Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnabled: false`). Custom JSON lives in `helmfile/dashboards/<folder>/` — same layout as the GazProm stand (`000-k8s`, `001-loki`, `005-traefik`, `007-jaeger-opensearch`). Alloy and OTel folders were added for this lab. A helmfile hook loads them into ConfigMaps; the Grafana sidecar puts each directory in its own folder.
+Default kube-prometheus-stack dashboards are off (`grafana.defaultDashboardsEnabled: false`). Custom JSON lives in `helmfile/dashboards/<folder>/` — same layout as the GazProm stand (`k8s`, `loki`, `traefik`, `jaeger-opensearch`). Alloy and OTel folders were added for this lab. A helmfile hook loads them into ConfigMaps; the Grafana sidecar puts each directory in its own folder.
