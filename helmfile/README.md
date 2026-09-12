@@ -46,7 +46,7 @@ helmfile/
 
 ## Dashboards
 
-Default kube-prometheus-stack dashboards are off. JSON in `dashboards/<folder>/` (`k8s`, `loki`, `traefik`, `jaeger-opensearch`, `alloy`, `otel`) is applied as ConfigMaps. The Grafana sidecar creates those folder names.
+Default kube-prometheus-stack dashboards are off. JSON in `dashboards/<folder>/` (`k8s`, `loki` / K8s App Logs, `traefik`, `jaeger-opensearch`, `alloy`, `otel`) is applied as ConfigMaps. The Grafana sidecar creates those folder names.
 
 ## Alerts
 
