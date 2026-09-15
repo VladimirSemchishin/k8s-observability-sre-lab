@@ -29,7 +29,10 @@ This is a lab, not HA production. Replicas stay at 1 so the stack fits two 4 GiB
 
 ## Screenshots
 
-See [`demo/`](./demo/) — one folder per service (Grafana dashboards and, where it exists, the service UI).
+See [`demo/`](./demo/):
+
+- [`demo/stand-screenshots/`](./demo/stand-screenshots/) — stack is up (Grafana dashboards and service UIs).
+- [`demo/sla-incident/`](./demo/sla-incident/) — SLA/SLO breach → alert → runbook → logs → traces → recovery (`demo-load` / `DemoLoadErrorRateSLOBreach`).
 
 ## Architecture
 
@@ -89,6 +92,7 @@ terraform/      # VPC + DOKS. State in DigitalOcean Spaces.
 helmfile/       # Vendored charts, values, dashboards, alerts. One helmfile sync.
                 # Public UI host: helmfile/values/lab.yaml (lab.publicBaseURL).
 for-load-test/  # Demo app + k6 to prove metrics/logs/traces on the stack.
+demo/           # Screenshots: stand-screenshots/ (install) + sla-incident/ (SLO story).
 ARCHITECTURE.md
 ```
 
@@ -140,7 +144,7 @@ About two minutes, after `helmfile sync`:
 3. Folder `traefik` → **Traefik Ingress** — request rates on the path-prefix routes.
 4. `https://<lb-ip>/ui/jaeger` → search service `devo-smoke` (or send any OTLP to `opentelemetry-collector:4318`).
 5. `https://<lb-ip>/ui/prometheus` → **Alerts** — lab `*Down` rules stay inactive while targets are up.
-6. Grafana → folder `sla-slo-sli` → **SLA / SLO / SLI — demo-load** after k6: error rate ~5% (SLO is **< 1%**, so `DemoLoadErrorRateSLOBreach` fires). Folder **Runbooks** has the matching text runbook. Stop the Job and watch SLI recover.
+6. Grafana → folder `sla-slo-sli` → **SLA / SLO / SLI — demo-load** after k6: error rate ~5% (SLO is **< 1%**, so `DemoLoadErrorRateSLOBreach` fires). Folder **Runbooks** has the matching text runbook. Stop the Job and watch SLI recover. Full walkthrough: [`demo/sla-incident/`](./demo/sla-incident/).
 
 ## Tear down
 

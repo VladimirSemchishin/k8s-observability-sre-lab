@@ -81,7 +81,7 @@ Folder `sla-slo-sli`, dashboard **SLA / SLO / SLI — demo-load** (`uid: slo-dem
 - **SLO** — error rate **< 1%** over 5m (internal target; alert `DemoLoadErrorRateSLOBreach` in `alerts/demo/slo.yaml`)
 - **SLI** — `5xx / total` on `demo_http_requests_total` for namespace `demo`
 
-The 1% SLO is **meant to fire** during the existing k6 mix (~5% `GET /error`). After the Job is deleted, SLI should recover. Story: [`../for-load-test/README.md`](../for-load-test/README.md).
+The 1% SLO is **meant to fire** during the existing k6 mix (~5% `GET /error`). After the Job is deleted, SLI should recover. App + k6: [`../for-load-test/README.md`](../for-load-test/README.md). Screenshot walkthrough: [`../demo/sla-incident/`](../demo/sla-incident/).
 
 ## Alerts
 
