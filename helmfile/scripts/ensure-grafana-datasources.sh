@@ -6,8 +6,13 @@
 set -euo pipefail
 
 NS=monitoring
-POD=ensure-grafana-datasources
+POD="ensure-grafana-datasources-$$"
 IMAGE=curlimages/curl:8.15.0
+
+cleanup() {
+  kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
 
 kubectl -n "$NS" wait --for=condition=available deploy/kube-prometheus-stack-grafana --timeout=180s
 if kubectl -n loki get pod -l app.kubernetes.io/name=loki --no-headers 2>/dev/null | grep -q .; then
@@ -16,8 +21,6 @@ fi
 if kubectl -n jaeger get deploy jaeger >/dev/null 2>&1; then
   kubectl -n jaeger wait --for=condition=available deploy/jaeger --timeout=180s
 fi
-
-kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true >/dev/null
 
 kubectl -n "$NS" run "$POD" --restart=Never --image="$IMAGE" --command -- /bin/sh -c '
 set -eu
@@ -60,8 +63,7 @@ if ! kubectl -n "$NS" wait --for=jsonpath='{.status.phase}'=Succeeded pod/"$POD"
   echo "ensure-grafana-datasources pod failed" >&2
   kubectl -n "$NS" logs "$POD" >&2 || true
   kubectl -n "$NS" describe pod "$POD" >&2 || true
-  kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true >/dev/null || true
   exit 1
 fi
-kubectl -n "$NS" logs "$POD"
-kubectl -n "$NS" delete pod "$POD" --ignore-not-found --wait=true >/dev/null
+# Parallel Loki/Jaeger postsync: a sibling may already have deleted the pod.
+kubectl -n "$NS" logs "$POD" || true
