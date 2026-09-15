@@ -106,6 +106,8 @@ Replicas stay at 1. HA does not fit this node pool.
 Placeholders: `values/kube-prometheus-stack/telegram.yaml`.  
 Real token / chat id: gitignored `telegram.local.yaml` (copy `telegram.local.yaml.example`). Helmfile warns if the local file is missing.
 
+`parse_mode: HTML` with a compact `message` template: firing/resolved and severity emojis, then alertname, severity/service, summary, and runbook + Prometheus source as `click-me` links (not a raw label dump). Helm list-merge replaces `receivers`, so keep that `message` block in `telegram.local.yaml`.
+
 ## Destroy apps only
 
 ```bash
