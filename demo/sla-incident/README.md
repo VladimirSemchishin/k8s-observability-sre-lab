@@ -25,9 +25,9 @@
 - [Шаг 1 — SLO dashboard: SLI выше SLO](#шаг-1--slo-dashboard-sli-выше-slo)
 - [Шаг 2 — Алерт (Telegram / Alertmanager)](#шаг-2--алерт-telegram--alertmanager)
 - [Шаг 3 — Runbook](#шаг-3--runbook)
-- [Шаг 4 — Loki: ns=`demo`, path `/error`, `trace_id`](#шаг-4--loki-nsdemo-path-error-trace_id)
-- [Шаг 5 — Jaeger: `demo-load` `GET /error`](#шаг-5--jaeger-demo-load-get-error)
-- [Шаг 6 — Снять нагрузку / recover](#шаг-6--снять-нагрузку--recover)
+- [Шаг 4 — Логи (Loki)](#шаг-4--логи-loki)
+- [Шаг 5 — Трейсы (Jaeger)](#шаг-5--трейсы-jaeger)
+- [Шаг 6 — Починка и recover](#шаг-6--починка-и-recover)
 - [Кратко](#кратко)
 
 ## Как поднять стенд
@@ -92,27 +92,15 @@ Job в кластере (~3 мин): ~80% `/work`, ~15% `/slow`, ~5% `/error`. k
 
 ## Шаг 1 — SLO dashboard: SLI выше SLO
 
-Grafana → папка **`sla-slo-sli`** → дашборд **SLA / SLO / SLI — demo-load** (`uid: slo-demo-load`).
+Это общий дашборд, в котором описаны SLA/SLO/SLI для конкретного сервиса — в примере это `demo-load`. Он показывает фактические показатели SLI постоянно: по нему сразу видно, выполняются обязательства или нет.
 
-Пока крутится k6:
-
-- SLI (error rate, 5m) **выше** красной линии **1%** (~5% из `/error`)
-- error budget в красной зоне / отрицательный
-- ссылка **Runbook DemoLoadErrorRateSLOBreach** (из `lab.publicBaseURL`)
+Пока крутится нагрузка, SLI (error rate за 5 минут) оказывается **выше** красной линии **1%**, error budget уходит в минус. Это и есть сигнал, что внешнее обещание сервиса уже под ударом.
 
 ![Grafana SLO dashboard — SLI above 1%](01-slo-dashboard-breach.png)
 
 ## Шаг 2 — Алерт (Telegram / Alertmanager)
 
-Имя алерта: **`DemoLoadErrorRateSLOBreach`**. Severity `warning`. Annotation `runbook_url`:
-
-`{{publicBaseURL}}/ui/grafana/d/demo-load-error-rate-slo-breach/`
-
-(подставляется из `lab.publicBaseURL` скриптом `apply-prometheus-alerts.sh`, в git не оставляем сырой placeholder).
-
-- **Telegram** (если настроен): firing, затем resolved после recovery (`send_resolved: true`).
-- **Alertmanager**: `https://<lb-ip>/ui/alertmanager`
-- **Prometheus Alerts**: `https://<lb-ip>/ui/prometheus/alerts`
+Инженер получает уведомление в удобный мессенджер — в примере это Telegram — с краткой сводкой: что случилось, какая метрика, где лежит runbook (как чинить и куда смотреть) и ссылка на эту метрику в Prometheus. За минимальное время это даёт весь нужный контекст, чтобы чинить инцидент, а не собирать его по кускам.
 
 ![Telegram — DemoLoadErrorRateSLOBreach](02-telegram-alert.png)
 
@@ -120,49 +108,33 @@ Grafana → папка **`sla-slo-sli`** → дашборд **SLA / SLO / SLI �
 
 ## Шаг 3 — Runbook
 
-Grafana → папка **Runbooks** → **DemoLoadErrorRateSLOBreach** (`uid: demo-load-error-rate-slo-breach`).
-
-Источник: [`helmfile/dashboards/runbooks/demo-load-error-rate-slo-breach.md`](../../helmfile/dashboards/runbooks/demo-load-error-rate-slo-breach.md). Рендерится на `helmfile sync` (Markdown **Text** panel). Дальше: SLO dashboard, Loki (`trace_id`), Jaeger `GET /error`, снять k6.
+Из алерта инженер открывает runbook: это короткая инструкция именно по этому SLO, а не общая wiki. В ней уже написано, какой дашборд смотреть, как найти ошибку в логах, как выйти на трейс и чем заканчивается починка. Не нужно вспоминать, «куда вообще ходить».
 
 ![Grafana Runbooks — DemoLoadErrorRateSLOBreach](04-runbook.png)
 
-## Шаг 4 — Loki: ns=`demo`, path `/error`, `trace_id`
+## Шаг 4 — Логи (Loki)
 
-Grafana → папка **`loki`** → **K8s App Logs** (переменная `namespace=demo`) или Explore → Loki:
-
-```logql
-{namespace="demo"} | json | status = 500
-```
-
-Строки — JSON приложения. Скопируйте **`trace_id`**. Фильтр `path="/error"` — если удобнее искать по path, а не по status.
+Пока инцидент живой, в Loki видны логи приложения: статус **500**, путь **`/error`**, и в той же JSON-строке **`trace_id`**. Это ответ на вопрос «что именно падает прямо сейчас», без `kubectl logs` по подам.
 
 ![Grafana Loki — demo /error with trace_id](05-grafana-logs.png)
 
-## Шаг 5 — Jaeger: `demo-load` `GET /error`
+## Шаг 5 — Трейсы (Jaeger)
 
-Jaeger UI: `https://<lb-ip>/ui/jaeger` → сервис **`demo-load`**, operation **`GET /error`** (рядом: `GET /work`, `GET /slow`). Откройте span и сверьте **`trace_id`** из Loki.
-
-Тот же поиск: Grafana Explore → datasource **Jaeger** (`uid: jaeger`).
-
-Трейсы: **OTLP HTTP 4318** → OpenTelemetry Collector → Jaeger (in-memory, не OpenSearch).
+`trace_id` из лога открывается в Jaeger: видно, что ломается конкретный запрос **`GET /error`**, а соседние `GET /work` / `GET /slow` отрабатывают. Так инженер отделяет «сервис лёг» от «одна ручка специально отдаёт 500».
 
 ![Jaeger — demo-load GET /error](06-jaeger-error-trace.png)
 
-## Шаг 6 — Снять нагрузку / recover
+## Шаг 6 — Починка и recover
+
+Причину устраняем (в этом кейсе — останавливаем нагрузку k6). Приложение остаётся в кластере, 5xx пропадают, SLI возвращается **ниже 1%**, error budget снова зелёный. Инженер получает уведомление, что инцидент закрыт.
 
 ```bash
 kubectl -n demo delete job demo-load-k6
 ```
 
-`demo-load` остаётся; останавливается только Job. Когда окно 5m rate стечёт:
-
-- SLO dashboard: SLI **ниже 1%**, error budget снова зелёный
-- `DemoLoadErrorRateSLOBreach` → **Inactive**
-- Telegram resolved (если Telegram включён)
-
 ![Grafana SLO dashboard — recovered](07-slo-recovered.png)
 
-Когда закончите: `kubectl delete -k for-load-test` (см. [`for-load-test/README.md`](../../for-load-test/README.md)).
+Когда закончите со стендом: `kubectl delete -k for-load-test` (см. [`for-load-test/README.md`](../../for-load-test/README.md)).
 
 ---
 
@@ -170,9 +142,9 @@ kubectl -n demo delete job demo-load-k6
 
 1. Стенд: `helmfile sync`, `lab.publicBaseURL`, `kubectl apply -k for-load-test`.
 2. Нагрузка: `kubectl apply -k for-load-test/k6` (~5% `GET /error`).
-3. Grafana, папка **`sla-slo-sli`**: SLI > SLO 1%.
-4. Алерт **`DemoLoadErrorRateSLOBreach`** (Telegram / Alertmanager) → `runbook_url`.
-5. Папка **Runbooks** → **DemoLoadErrorRateSLOBreach**.
-6. Loki `{namespace="demo"} | json | status = 500` → `trace_id`.
-7. Jaeger, сервис **`demo-load`**, operation **`GET /error`** (OTLP → коллектор → Jaeger).
-8. `kubectl -n demo delete job demo-load-k6` → SLI < 1%.
+3. Дашборд SLA/SLO/SLI: SLI выше 1% — обязательства не держатся.
+4. Telegram: сводка, runbook, ссылка на метрику.
+5. Runbook: куда смотреть и как чинить.
+6. Loki: ошибки приложения и `trace_id`.
+7. Jaeger: какой запрос не выполняется (`GET /error`).
+8. Снять нагрузку → SLI < 1% и уведомление, что инцидент закрыт.
