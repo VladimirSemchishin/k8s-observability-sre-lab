@@ -41,7 +41,7 @@ apply_json() {
   name="$(echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | cut -c1-63)"
   title="$(grafana_folder_title "$folder")"
   tmp="$WORK/${name}.json"
-  sed "s|{{publicBaseURL}}|${PUBLIC_BASE_URL}|g" "$f" > "$tmp"
+  python3 "$ROOT/scripts/subst-public-base-url.py" --url "$PUBLIC_BASE_URL" "$f" "$tmp"
   kubectl -n "$NS" create configmap "$name" --from-file="${base}.json=${tmp}" --dry-run=client -o yaml \
     | kubectl -n "$NS" apply --server-side --force-conflicts -f - >/dev/null
   kubectl -n "$NS" label configmap "$name" grafana_dashboard=1 grokbot-dashboard=1 --overwrite >/dev/null

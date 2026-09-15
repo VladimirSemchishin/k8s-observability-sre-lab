@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Apply helmfile/alerts/<service>/*.yaml as PrometheusRules (label release=kube-prometheus-stack).
-# Substitutes {{publicBaseURL}} from values/lab.yaml (does not touch Prometheus {{ $labels }}).
+# Substitutes {{publicBaseURL}} from values/lab.yaml before kubectl apply
+# (same helper as dashboards). Does not touch Prometheus {{ $labels }} / {{ $value }}.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NS=monitoring
@@ -11,8 +12,9 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 shopt -s nullglob
 for f in "$SRC"/*/*.yaml; do
-  out="$WORK/$(basename "$f")"
-  sed "s|{{publicBaseURL}}|${PUBLIC_BASE_URL}|g" "$f" > "$out"
+  rel="${f#"$SRC"/}"
+  out="$WORK/$rel"
+  python3 "$ROOT/scripts/subst-public-base-url.py" --url "$PUBLIC_BASE_URL" "$f" "$out"
   kubectl apply --server-side --force-conflicts -f "$out"
 done
 echo "prometheus lab alerts applied"

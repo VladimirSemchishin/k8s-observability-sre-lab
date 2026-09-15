@@ -4,6 +4,7 @@
 #   - Grafana server.root_url
 #   - Prometheus / Alertmanager externalUrl
 #   - Links inside runbook and SLO dashboards (placeholder {{publicBaseURL}})
+#   - PrometheusRule runbook_url (same placeholder, applied by apply-prometheus-alerts.sh)
 #
 # Scheme + host only, no trailing slash, no /ui/... path.
 # Update this when the LB IP changes, or replace the host with DNS later:
@@ -14,4 +15,4 @@
 #
 # Loaded by helmfile environments.default (see helmfile.yaml).
 lab:
-  publicBaseURL: "https://134.199.251.14"
+  publicBaseURL: "https://134.199.240.188"

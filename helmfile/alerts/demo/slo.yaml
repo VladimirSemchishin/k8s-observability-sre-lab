@@ -31,4 +31,5 @@ spec:
               (SLO: < 1% over 5m). The load-proof k6 mix includes ~5% GET /error,
               so this is expected while the Job runs. Runbook: Grafana folder
               Runbooks → DemoLoadErrorRateSLOBreach.
+            # Substituted from lab.publicBaseURL by apply-prometheus-alerts.sh (not left literal).
             runbook_url: "{{publicBaseURL}}/ui/grafana/d/demo-load-error-rate-slo-breach/"

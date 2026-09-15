@@ -67,7 +67,7 @@ kubectl -n traefik get svc traefik
 
 **Public base URL (one place):** [`helmfile/values/lab.yaml`](./helmfile/values/lab.yaml) → `lab.publicBaseURL` (scheme + host, no trailing slash). This is the Traefik LoadBalancer IP **or future DNS**. Grafana `root_url`, Prometheus/Alertmanager `externalUrl`, and links in runbook/SLO dashboards all use it. When the LB is recreated, update that file and `helmfile sync` — do not scatter the IP in JSON.
 
-Current value: `https://134.199.251.14` (will change if the LB is recreated).
+Current value: `https://134.199.240.188` (will change if the LB is recreated).
 
 | UI | URL | Auth |
 |---|---|---|
