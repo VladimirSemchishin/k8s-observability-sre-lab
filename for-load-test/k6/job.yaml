@@ -1,0 +1,56 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: demo-load-k6
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: demo-load-k6
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      initContainers:
+        - name: wait
+          image: busybox:1.36
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until wget -q -O- http://demo-load.demo.svc.cluster.local:8080/health; do
+                echo "waiting for demo-load"
+                sleep 2
+              done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+      containers:
+        - name: k6
+          image: grafana/k6:0.57.0
+          imagePullPolicy: IfNotPresent
+          args: ["run", "/scripts/script.js"]
+          env:
+            - name: BASE_URL
+              value: http://demo-load.demo.svc.cluster.local:8080
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: demo-load-k6

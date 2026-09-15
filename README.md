@@ -22,6 +22,7 @@ A working Kubernetes cluster plus:
 - **Traces** — OpenTelemetry Collector → Jaeger
 - **Alerts** — Alertmanager (optional Telegram) and per-service `*Down` rules
 - **Cluster UI** — official Kubernetes Dashboard
+- **Load-proof** — tiny demo + k6 in [`for-load-test/`](./for-load-test/) (app hurts → metrics / logs / traces)
 
 This is a lab, not HA production. Replicas stay at 1 so the stack fits two 4 GiB nodes. Jaeger keeps traces in memory.
 
@@ -82,8 +83,9 @@ Loki has no public UI. Query logs from Grafana (folder `loki`). Alloy writes to 
 ## Repository layout
 
 ```
-terraform/    # VPC + DOKS. State in DigitalOcean Spaces.
-helmfile/     # Vendored charts, values, dashboards, alerts. One helmfile sync.
+terraform/      # VPC + DOKS. State in DigitalOcean Spaces.
+helmfile/       # Vendored charts, values, dashboards, alerts. One helmfile sync.
+for-load-test/  # Demo app + k6 to prove metrics/logs/traces on the stack.
 ARCHITECTURE.md
 ```
 

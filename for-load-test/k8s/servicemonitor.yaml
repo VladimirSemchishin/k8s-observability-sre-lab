@@ -1,0 +1,22 @@
+# Prometheus Operator scrapes ServiceMonitors labeled release=kube-prometheus-stack.
+# Needed because the lab OTel Collector has no metrics pipeline (traces only).
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo-load
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: demo-load
+    release: kube-prometheus-stack
+spec:
+  jobLabel: app.kubernetes.io/name
+  namespaceSelector:
+    matchNames:
+      - demo
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-load
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
