@@ -19,7 +19,6 @@ done
 grafana_folder_title() {
   case "$1" in
     runbooks) printf '%s' "Runbooks" ;;
-    sla-slo-sli|slo) printf '%s' "SLA/SLO/SLI" ;;
     *) printf '%s' "$1" ;;
   esac
 }

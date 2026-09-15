@@ -140,7 +140,7 @@ About two minutes, after `helmfile sync`:
 3. Folder `traefik` → **Traefik Ingress** — request rates on the path-prefix routes.
 4. `https://<lb-ip>/ui/jaeger` → search service `devo-smoke` (or send any OTLP to `opentelemetry-collector:4318`).
 5. `https://<lb-ip>/ui/prometheus` → **Alerts** — lab `*Down` rules stay inactive while targets are up.
-6. Grafana → folder **SLA/SLO/SLI** → **SLA / SLO / SLI — demo-load** after k6: error rate ~5% (SLO is **< 1%**, so `DemoLoadErrorRateSLOBreach` fires). Folder **Runbooks** has the matching text runbook. Stop the Job and watch SLI recover.
+6. Grafana → folder `sla-slo-sli` → **SLA / SLO / SLI — demo-load** after k6: error rate ~5% (SLO is **< 1%**, so `DemoLoadErrorRateSLOBreach` fires). Folder **Runbooks** has the matching text runbook. Stop the Job and watch SLI recover.
 
 ## Tear down
 
