@@ -53,5 +53,28 @@ alertmanager:
             parse_mode: HTML
             send_resolved: true
             disable_notifications: false
+            # Alertmanager Go template (tplConfig is false, so Helm leaves {{ }} alone).
+            # HTML parse_mode: emojis + <a href> click-me, not a raw label/URL dump.
+            message: |-
+              {{ if eq .Status "firing" }}🔥 <b>Alerts Firing</b>{{ else }}✅ <b>Alerts Resolved</b>{{ end }}
+              {{- range .Alerts }}
+              —————
+              <b>{{ .Labels.alertname }}</b>
+              {{- if or .Labels.severity .Labels.service }}
+              {{ if .Labels.severity }}{{ if eq .Labels.severity "critical" }}🚨{{ else if eq .Labels.severity "warning" }}⚠️{{ else if eq .Labels.severity "info" }}ℹ️{{ else }}⚪{{ end }} <code>{{ .Labels.severity }}</code>{{ end }}{{ if .Labels.service }}{{ if .Labels.severity }} · {{ end }}<code>{{ .Labels.service }}</code>{{ end }}
+              {{- end }}
+              {{- if .Annotations.summary }}
+              📌 <b>Summary:</b> {{ .Annotations.summary }}
+              {{- end }}
+              {{- if .Annotations.description }}
+              {{ .Annotations.description }}
+              {{- end }}
+              {{- if .Annotations.runbook_url }}
+              📖 Runbook: <a href="{{ .Annotations.runbook_url | safeUrl }}">click-me</a>
+              {{- end }}
+              {{- if .GeneratorURL }}
+              🔗 Source: <a href="{{ .GeneratorURL | safeUrl }}">click-me</a>
+              {{- end }}
+              {{- end }}
     templates:
       - /etc/alertmanager/config/*.tmpl
