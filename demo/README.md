@@ -78,6 +78,8 @@ Jaeger Grafana dashboards + Jaeger UI (in-memory store, not OpenSearch)
 
 ![ui](jaeger/ui.png)
 
+![Jaeger UI — demo-load traces (work/slow)](jaeger/ui-demo-load.png)
+
 ## alloy
 
 Alloy / Overview
