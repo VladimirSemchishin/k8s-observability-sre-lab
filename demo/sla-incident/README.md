@@ -6,9 +6,11 @@ The app is [`for-load-test/`](../../for-load-test/) (`demo-load` in namespace `d
 
 Grafana dashboard copy and the runbook text are in **Russian**; this walkthrough is in English.
 
-## Screenshots (drop PNGs here later)
+## Screenshots
 
-Walk the steps below and save files **next to this README** with these exact names. Image markdown is already in each step (`![...](01-….png)`), so adding the files needs **no README edits**.
+Live captures from this walkthrough, next to this README. Image markdown is already in each step (`![...](01-….png)`).
+
+Also see `03b-prometheus-alerts-firing.png`, `05b-k8s-app-logs.png`, `06b-grafana-jaeger-error.png`, `07b-telegram-resolved.png`.
 
 | File | What to capture |
 |---|---|
