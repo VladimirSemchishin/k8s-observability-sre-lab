@@ -64,7 +64,7 @@ alertmanager:
               {{ if .Labels.severity }}{{ if eq .Labels.severity "critical" }}🚨{{ else if eq .Labels.severity "warning" }}⚠️{{ else if eq .Labels.severity "info" }}ℹ️{{ else }}⚪{{ end }} <code>{{ .Labels.severity }}</code>{{ end }}{{ if .Labels.service }}{{ if .Labels.severity }} · {{ end }}<code>{{ .Labels.service }}</code>{{ end }}
               {{- end }}
               {{- if .Annotations.summary }}
-              📌 {{ .Annotations.summary }}
+              📌 <b>Summary:</b> {{ .Annotations.summary }}
               {{- end }}
               {{- if .Annotations.description }}
               {{ .Annotations.description }}
