@@ -6,19 +6,19 @@ The app is [`for-load-test/`](../../for-load-test/) (`demo-load` in namespace `d
 
 Grafana dashboard copy and the runbook text are in **Russian**; this walkthrough is in English.
 
-## Expected screenshots
+## Screenshots (drop PNGs here later)
 
-PNG files are not in git yet (add them on this PR or a follow-up). Filenames:
+Walk the steps below and save files **next to this README** with these exact names. Image markdown is already in each step (`![...](01-….png)`), so adding the files needs **no README edits**.
 
 | File | What to capture |
 |---|---|
-| [`01-slo-dashboard-breach.png`](01-slo-dashboard-breach.png) | Grafana folder `sla-slo-sli` — SLI (error rate) above the 1% SLO line |
-| [`02-telegram-alert.png`](02-telegram-alert.png) | Telegram message for `DemoLoadErrorRateSLOBreach` (optional if Telegram is not configured) |
-| [`03-alertmanager-firing.png`](03-alertmanager-firing.png) | Alertmanager UI — alert firing, `runbook_url` present |
-| [`04-runbook.png`](04-runbook.png) | Grafana folder **Runbooks** → **DemoLoadErrorRateSLOBreach** |
-| [`05-grafana-logs.png`](05-grafana-logs.png) | Loki: `namespace=demo`, `path=/error` (or `status=500`), `trace_id` in the JSON line |
-| [`06-jaeger-error-trace.png`](06-jaeger-error-trace.png) | Jaeger: service `demo-load`, operation `GET /error` |
-| [`07-slo-recovered.png`](07-slo-recovered.png) | Same SLO dashboard after k6 is stopped — SLI back under 1% |
+| `01-slo-dashboard-breach.png` | Grafana folder `sla-slo-sli` — SLI (error rate) above the 1% SLO line |
+| `02-telegram-alert.png` | Telegram message for `DemoLoadErrorRateSLOBreach` (optional if Telegram is not configured) |
+| `03-alertmanager-firing.png` | Alertmanager UI — alert firing, `runbook_url` present |
+| `04-runbook.png` | Grafana folder **Runbooks** → **DemoLoadErrorRateSLOBreach** |
+| `05-grafana-logs.png` | Loki: `namespace=demo`, `path=/error` (or `status=500`), `trace_id` in the JSON line |
+| `06-jaeger-error-trace.png` | Jaeger: service `demo-load`, operation `GET /error` |
+| `07-slo-recovered.png` | Same SLO dashboard after k6 is stopped — SLI back under 1% |
 
 ## Preconditions
 
@@ -92,8 +92,6 @@ While k6 is running you should see:
 
 ![Grafana SLO dashboard — SLI above 1%](01-slo-dashboard-breach.png)
 
-<!-- screenshot: 01-slo-dashboard-breach.png -->
-
 ## Step 2 — Alert fires (Telegram / Alertmanager)
 
 Alert name: **`DemoLoadErrorRateSLOBreach`**. Severity `warning`. Annotation `runbook_url` is:
@@ -110,9 +108,6 @@ Alert name: **`DemoLoadErrorRateSLOBreach`**. Severity `warning`. Annotation `ru
 
 ![Alertmanager — firing](03-alertmanager-firing.png)
 
-<!-- screenshot: 02-telegram-alert.png -->
-<!-- screenshot: 03-alertmanager-firing.png -->
-
 ## Step 3 — Open the runbook
 
 Grafana → folder **Runbooks** → **DemoLoadErrorRateSLOBreach** (`uid: demo-load-error-rate-slo-breach`).
@@ -120,8 +115,6 @@ Grafana → folder **Runbooks** → **DemoLoadErrorRateSLOBreach** (`uid: demo-l
 Source: [`helmfile/dashboards/runbooks/demo-load-error-rate-slo-breach.md`](../../helmfile/dashboards/runbooks/demo-load-error-rate-slo-breach.md). Rendered on `helmfile sync` (Markdown **Text** panel). It tells you to check the SLO dashboard, Loki (`trace_id`), Jaeger `GET /error`, then stop k6.
 
 ![Grafana Runbooks — DemoLoadErrorRateSLOBreach](04-runbook.png)
-
-<!-- screenshot: 04-runbook.png -->
 
 ## Step 4 — Loki: ns=`demo`, path `/error`, `trace_id`
 
@@ -135,8 +128,6 @@ Lines are JSON from the app. Copy **`trace_id`**. Filter on `path="/error"` the 
 
 ![Grafana Loki — demo /error with trace_id](05-grafana-logs.png)
 
-<!-- screenshot: 05-grafana-logs.png -->
-
 ## Step 5 — Jaeger: `demo-load` `GET /error`
 
 Jaeger UI: `https://<lb-ip>/ui/jaeger` → service **`demo-load`**, operation **`GET /error`** (neighbours: `GET /work`, `GET /slow`). Open a span and match **`trace_id`** from Loki.
@@ -146,8 +137,6 @@ Same search from Grafana Explore → datasource **Jaeger** (`uid: jaeger`).
 Traces: **OTLP HTTP 4318** → OpenTelemetry Collector → Jaeger (in-memory, not OpenSearch).
 
 ![Jaeger — demo-load GET /error](06-jaeger-error-trace.png)
-
-<!-- screenshot: 06-jaeger-error-trace.png -->
 
 ## Step 6 — Stop load / recover
 
@@ -162,8 +151,6 @@ kubectl -n demo delete job demo-load-k6
 - Telegram resolved message (if Telegram is enabled)
 
 ![Grafana SLO dashboard — recovered](07-slo-recovered.png)
-
-<!-- screenshot: 07-slo-recovered.png -->
 
 Tear down the app when you are done: `kubectl delete -k for-load-test` (see [`for-load-test/README.md`](../../for-load-test/README.md)).
 
