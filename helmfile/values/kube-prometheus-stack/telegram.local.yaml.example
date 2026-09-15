@@ -30,7 +30,10 @@ alertmanager:
               {{ if .Labels.severity }}{{ if eq .Labels.severity "critical" }}🚨{{ else if eq .Labels.severity "warning" }}⚠️{{ else if eq .Labels.severity "info" }}ℹ️{{ else }}⚪{{ end }} <code>{{ .Labels.severity }}</code>{{ end }}{{ if .Labels.service }}{{ if .Labels.severity }} · {{ end }}<code>{{ .Labels.service }}</code>{{ end }}
               {{- end }}
               {{- if .Annotations.summary }}
-              {{ .Annotations.summary }}
+              📌 {{ .Annotations.summary }}
+              {{- end }}
+              {{- if .Annotations.description }}
+              {{ .Annotations.description }}
               {{- end }}
               {{- if .Annotations.runbook_url }}
               📖 Runbook: <a href="{{ .Annotations.runbook_url | safeUrl }}">click-me</a>
