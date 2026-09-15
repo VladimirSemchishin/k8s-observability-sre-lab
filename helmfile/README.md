@@ -23,7 +23,7 @@ helmfile -f helmfile/helmfile.yaml sync
 
 Order is the `bases:` list in `helmfile.yaml`. One Alertmanager only (the stack in `monitoring`).
 
-`traefik.io` and Prometheus Operator CRDs are applied by `presync` kubectl hooks, not as Helm releases.
+`traefik.io` CRDs and Prometheus Operator CRDs (`monitoring.coreos.com`) are applied by Traefik's `presync` kubectl hook so a fresh `sync` can render Traefik's ServiceMonitor before kube-prometheus-stack (which `needs` Traefik). kube-prometheus-stack applies the same Prom CRDs again (idempotent). These are not Helm releases.
 
 ## UIs
 
