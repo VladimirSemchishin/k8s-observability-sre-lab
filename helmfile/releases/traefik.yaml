@@ -18,3 +18,14 @@ releases:
           - --force-conflicts
           - -f
           - helm-charts/traefik-io-crds/templates
+      # Traefik renders a ServiceMonitor; KPS (which owns these CRDs) needs Traefik,
+      # so apply them here on a clean cluster. Same path as kube-prometheus-stack.yaml.
+      - events: ["presync"]
+        showlogs: true
+        command: kubectl
+        args:
+          - apply
+          - --server-side
+          - --force-conflicts
+          - -f
+          - helm-charts/prometheus-operator-crds/templates

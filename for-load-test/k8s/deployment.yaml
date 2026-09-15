@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-load
+  namespace: demo
+  labels:
+    app.kubernetes.io/name: demo-load
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: demo-load
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: demo-load
+    spec:
+      automountServiceAccountToken: false
+      # Compile from ConfigMap using public images — no registry credentials.
+      initContainers:
+        - name: build
+          image: golang:1.23-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -euo pipefail
+              mkdir -p /tmp/build
+              cp /src/main.go /src/go.mod /src/go.sum /tmp/build/
+              cd /tmp/build
+              CGO_ENABLED=0 GOOS=linux go build -ldflags='-s -w' -o /out/demo .
+              chmod 755 /out/demo
+          env:
+            - name: GOPROXY
+              value: https://proxy.golang.org,direct
+            - name: GOCACHE
+              value: /tmp/gocache
+            - name: GOPATH
+              value: /tmp/gopath
+            - name: GOMODCACHE
+              value: /tmp/gopath/pkg/mod
+          volumeMounts:
+            - name: src
+              mountPath: /src
+              readOnly: true
+            - name: bin
+              mountPath: /out
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+      containers:
+        - name: demo-load
+          image: gcr.io/distroless/static-debian12:nonroot
+          imagePullPolicy: IfNotPresent
+          command: ["/out/demo"]
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: OTEL_SERVICE_NAME
+              value: demo-load
+            # Lab collector: helmfile release/namespace opentelemetry-collector,
+            # OTLP HTTP 4318 (gRPC is 4317). Traces pipeline only.
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://opentelemetry-collector.opentelemetry-collector.svc.cluster.local:4318
+            - name: OTEL_EXPORTER_OTLP_PROTOCOL
+              value: http/protobuf
+          volumeMounts:
+            - name: bin
+              mountPath: /out
+              readOnly: true
+          resources:
+            requests:
+              cpu: 25m
+              memory: 48Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65532
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: src
+          configMap:
+            name: demo-load-src
+        - name: bin
+          emptyDir: {}
