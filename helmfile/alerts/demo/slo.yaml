@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: lab-demo
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    grokbot-alerts: "1"
+spec:
+  groups:
+    - name: lab.demo
+      rules:
+        - alert: DemoLoadErrorRateSLOBreach
+          # SLI = 5xx / total over 5m. SLO = error rate < 1%.
+          # k6 mix is ~5% GET /error, so this fires during the load-proof.
+          expr: |
+            (
+              sum(rate(demo_http_requests_total{namespace="demo",code=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(demo_http_requests_total{namespace="demo"}[5m])), 1e-9)
+            ) > 0.01
+          for: 1m
+          labels:
+            severity: warning
+            service: demo
+            slo: "true"
+          annotations:
+            summary: demo-load SLI (error rate) breached SLO (< 1% 5xx over 5m)
+            description: >-
+              Error rate is {{ $value | humanizePercentage }}
+              (SLO: < 1% over 5m). The load-proof k6 mix includes ~5% GET /error,
+              so this is expected while the Job runs. Runbook: Grafana folder
+              Runbooks → DemoLoadErrorRateSLOBreach.
+            # Substituted from lab.publicBaseURL by apply-prometheus-alerts.sh (not left literal).
+            runbook_url: "{{publicBaseURL}}/ui/grafana/d/demo-load-error-rate-slo-breach/"

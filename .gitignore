@@ -19,6 +19,7 @@ helmfile/values/**/*.local.yaml
 helmfile/.env
 helmfile/.env.helmfile
 helmfile/rendered/
+helmfile/dashboards/runbooks/*.json
 .env
 .env.helmfile
 rendered/

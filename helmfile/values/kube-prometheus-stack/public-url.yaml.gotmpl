@@ -1,0 +1,13 @@
+# Public UI URLs from helmfile/values/lab.yaml (lab.publicBaseURL).
+# Do not hardcode the LoadBalancer IP here. Helmfile environments.default loads lab.yaml.
+{{- $base := .Values.lab.publicBaseURL | trimSuffix "/" }}
+grafana:
+  grafana.ini:
+    server:
+      root_url: "{{ $base }}/ui/grafana/"
+prometheus:
+  prometheusSpec:
+    externalUrl: "{{ $base }}/ui/prometheus/"
+alertmanager:
+  alertmanagerSpec:
+    externalUrl: "{{ $base }}/ui/alertmanager/"

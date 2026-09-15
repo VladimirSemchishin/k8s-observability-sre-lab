@@ -20,9 +20,9 @@ A working Kubernetes cluster plus:
 - **Metrics** — Prometheus + Grafana (kube-prometheus-stack)
 - **Logs** — Loki + Grafana Alloy
 - **Traces** — OpenTelemetry Collector → Jaeger
-- **Alerts** — Alertmanager (optional Telegram) and per-service `*Down` rules
+- **Alerts** — Alertmanager (optional Telegram), per-service `*Down` rules, and demo-load SLO (`DemoLoadErrorRateSLOBreach`)
 - **Cluster UI** — official Kubernetes Dashboard
-- **Load-proof** — tiny demo + k6 in [`for-load-test/`](./for-load-test/) (app hurts → metrics / logs / traces)
+- **Load-proof** — tiny demo + k6 in [`for-load-test/`](./for-load-test/) (app hurts → metrics / logs / traces / SLO)
 
 This is a lab, not HA production. Replicas stay at 1 so the stack fits two 4 GiB nodes. Jaeger keeps traces in memory.
 
@@ -65,7 +65,9 @@ Replace `<lb-ip>` with the Traefik Service address:
 kubectl -n traefik get svc traefik
 ```
 
-Current lab IP (will change if the LB is recreated): `134.199.251.14`.
+**Public base URL (one place):** [`helmfile/values/lab.yaml`](./helmfile/values/lab.yaml) → `lab.publicBaseURL` (scheme + host, no trailing slash). This is the Traefik LoadBalancer IP **or future DNS**. Grafana `root_url`, Prometheus/Alertmanager `externalUrl`, and links in runbook/SLO dashboards all use it. When the LB is recreated, update that file and `helmfile sync` — do not scatter the IP in JSON.
+
+Current value: `https://134.199.240.188` (will change if the LB is recreated).
 
 | UI | URL | Auth |
 |---|---|---|
@@ -85,6 +87,7 @@ Loki has no public UI. Query logs from Grafana (folder `loki`). Alloy writes to 
 ```
 terraform/      # VPC + DOKS. State in DigitalOcean Spaces.
 helmfile/       # Vendored charts, values, dashboards, alerts. One helmfile sync.
+                # Public UI host: helmfile/values/lab.yaml (lab.publicBaseURL).
 for-load-test/  # Demo app + k6 to prove metrics/logs/traces on the stack.
 ARCHITECTURE.md
 ```
@@ -137,6 +140,7 @@ About two minutes, after `helmfile sync`:
 3. Folder `traefik` → **Traefik Ingress** — request rates on the path-prefix routes.
 4. `https://<lb-ip>/ui/jaeger` → search service `devo-smoke` (or send any OTLP to `opentelemetry-collector:4318`).
 5. `https://<lb-ip>/ui/prometheus` → **Alerts** — lab `*Down` rules stay inactive while targets are up.
+6. Grafana → folder `sla-slo-sli` → **SLA / SLO / SLI — demo-load** after k6: error rate ~5% (SLO is **< 1%**, so `DemoLoadErrorRateSLOBreach` fires). Folder **Runbooks** has the matching text runbook. Stop the Job and watch SLI recover.
 
 ## Tear down
 

@@ -49,4 +49,4 @@ Grafana datasources (Prometheus, Loki, Jaeger, Alertmanager) use Service DNS, so
 - Control-plane or app HA
 - Persistent Jaeger (no OpenSearch / Cassandra)
 - Kubecost / FinOps dashboards (use the DigitalOcean billing page)
-- SLO burn alerts, chaos reports, incident write-ups
+- SLO burn-rate math (this lab uses a simple 5m error-rate vs 1% SLO)

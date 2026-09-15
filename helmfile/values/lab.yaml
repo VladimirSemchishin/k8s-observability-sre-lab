@@ -1,0 +1,18 @@
+# High-level public URL of the lab Traefik LoadBalancer.
+#
+# This is the single source of truth for:
+#   - Grafana server.root_url
+#   - Prometheus / Alertmanager externalUrl
+#   - Links inside runbook and SLO dashboards (placeholder {{publicBaseURL}})
+#   - PrometheusRule runbook_url (same placeholder, applied by apply-prometheus-alerts.sh)
+#
+# Scheme + host only, no trailing slash, no /ui/... path.
+# Update this when the LB IP changes, or replace the host with DNS later:
+#
+#   kubectl -n traefik get svc traefik
+#   # then set lab.publicBaseURL: "https://<EXTERNAL-IP>"
+#   helmfile -f helmfile/helmfile.yaml sync
+#
+# Loaded by helmfile environments.default (see helmfile.yaml).
+lab:
+  publicBaseURL: "https://134.199.240.188"

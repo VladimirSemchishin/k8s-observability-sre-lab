@@ -65,7 +65,7 @@ grafana:
     path: /ui/grafana/metrics
   grafana.ini:
     server:
-      root_url: https://134.199.251.14/ui/grafana/
+      # root_url comes from values/lab.yaml via public-url.yaml.gotmpl
       serve_from_sub_path: true
     auth:
       disable_login_form: true
@@ -106,7 +106,7 @@ prometheus:
   service:
     type: ClusterIP
   prometheusSpec:
-    externalUrl: https://134.199.251.14/ui/prometheus/
+    # externalUrl comes from values/lab.yaml via public-url.yaml.gotmpl
     routePrefix: /ui/prometheus
     retention: 3d
     retentionSize: 4GB
@@ -134,7 +134,7 @@ alertmanager:
   service:
     type: ClusterIP
   alertmanagerSpec:
-    externalUrl: https://134.199.251.14/ui/alertmanager/
+    # externalUrl comes from values/lab.yaml via public-url.yaml.gotmpl
     routePrefix: /ui/alertmanager
     replicas: 1
     retention: 120h
