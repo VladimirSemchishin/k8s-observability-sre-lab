@@ -1,0 +1,514 @@
+{
+  "editable": true,
+  "schemaVersion": 39,
+  "tags": ["slo", "demo", "demo-load"],
+  "title": "SLA / SLO / SLI — demo-load",
+  "uid": "slo-demo-load",
+  "description": "SLA/SLO/SLI proof for demo-load. SLO: error rate < 1% over 5m. k6 mix is ~5% GET /error and will breach.",
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {
+          "text": "Prometheus",
+          "value": "prometheus"
+        },
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "Runbook DemoLoadErrorRateSLOBreach",
+      "type": "link",
+      "icon": "doc",
+      "targetBlank": true,
+      "url": "{{publicBaseURL}}/ui/grafana/d/demo-load-error-rate-slo-breach/"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "SLA / SLO / SLI",
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "code": {
+          "language": "markdown",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "# SLA, SLO и SLI для `demo-load`\n\n| Термин | Что это | В этом стенде |\n|---|---|---|\n| **SLA** | Что **обещаем клиенту** | 99% успешных HTTP-ответов (не 5xx). Это внешнее обещание. |\n| **SLO** | Внутренняя **цель**, к которой стремимся и по которой алертим | Error rate **< 1%** за 5 минут (`DemoLoadErrorRateSLOBreach`, `for: 1m`). |\n| **SLI** | Что **измеряем** | Доля 5xx: `sum(rate(demo_http_requests_total{code=~\"5..\"}[5m])) / sum(rate(demo_http_requests_total[5m]))` |\n\nПорог **1%** выбран так, чтобы штатный k6 (`for-load-test/k6`: ~80% `/work`, ~15% `/slow`, **~5% `/error`**) **гарантированно зажёг** алерт. После `kubectl -n demo delete job demo-load-k6` SLI должен вернуться ниже 1%.\n\nRunbook: [DemoLoadErrorRateSLOBreach]({{publicBaseURL}}/ui/grafana/d/demo-load-error-rate-slo-breach/) · логи: [K8s App Logs ns=demo]({{publicBaseURL}}/ui/grafana/d/k8s-app-logs?var-namespace=demo) · трейсы: [Jaeger demo-load]({{publicBaseURL}}/ui/jaeger/search?service=demo-load)\n"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "SLI: error rate (5m)",
+      "description": "Доля 5xx / все запросы demo-load. Красный, если выше SLO 1%.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(demo_http_requests_total{namespace=\"demo\",code=~\"5..\"}[5m])) / clamp_min(sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m])), 1e-9)",
+          "legendFormat": "error rate",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "SLO порог",
+      "description": "Внутренняя цель: error rate < 1% за 5m.",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "vector(0.01)",
+          "legendFormat": "SLO",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Error budget (остаток)",
+      "description": "Доля неиспользованного бюджета 1%. 100% = чисто, 0% = бюджет исчерпан, <0 = перерасход (k6 ~5% ошибок).",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "(0.01 - (sum(rate(demo_http_requests_total{namespace=\"demo\",code=~\"5..\"}[5m])) / clamp_min(sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m])), 1e-9))) / 0.01",
+          "legendFormat": "budget left",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "RPS (demo-load)",
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m]))",
+          "legendFormat": "rps",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 2,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "SLI vs SLO (error rate)",
+      "description": "Красная линия — SLO 1%. Во время k6 линия SLI должна быть около 5%.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(demo_http_requests_total{namespace=\"demo\",code=~\"5..\"}[5m])) / clamp_min(sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m])), 1e-9)",
+          "legendFormat": "SLI error rate",
+          "refId": "A"
+        },
+        {
+          "expr": "vector(0.01)",
+          "legendFormat": "SLO 1%",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 0.01
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLO 1%"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Requests by path and code",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m])) by (path, code)",
+          "legendFormat": "{{path}} {{code}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Success rate vs SLA 99%",
+      "description": "1 − error rate. SLA обещает 99% успешных ответов.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(demo_http_requests_total{namespace=\"demo\",code=~\"5..\"}[5m])) / clamp_min(sum(rate(demo_http_requests_total{namespace=\"demo\"}[5m])), 1e-9))",
+          "legendFormat": "SLI success rate",
+          "refId": "A"
+        },
+        {
+          "expr": "vector(0.99)",
+          "legendFormat": "SLA 99%",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0.9,
+          "max": 1,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SLA 99%"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Latency p95 by path",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(demo_http_request_duration_seconds_bucket{namespace=\"demo\"}[5m])) by (le, path))",
+          "legendFormat": "{{path}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      }
+    }
+  ]
+}

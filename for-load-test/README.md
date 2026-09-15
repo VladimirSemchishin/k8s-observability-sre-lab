@@ -109,6 +109,8 @@ Target job is `demo-load` (Prometheus → Status → Targets).
 - Service `demo-load`. Operations `GET /work`, `GET /slow`, `GET /error`.
 - Error spans are tagged; open one and copy `trace_id` into the Loki query `{namespace="demo"} | json | trace_id = "<id>"`.
 
+**Grafana → folder `slo`** — **SLA / SLO / SLI — demo-load** (`uid: slo-demo-load`). SLI is 5xx/total on `demo_http_requests_total`. **SLO is error rate < 1% over 5m** so the ~5% `/error` mix **fires** `DemoLoadErrorRateSLOBreach`. Runbook: Grafana folder **Runbooks**. Public links use `lab.publicBaseURL` in [`helmfile/values/lab.yaml`](../helmfile/values/lab.yaml) (do not hardcode the LB IP). See [helmfile/README.md](../helmfile/README.md).
+
 **Grafana → folder `k8s`** — namespace `demo` CPU/memory while k6 runs.
 
 ## Tear down

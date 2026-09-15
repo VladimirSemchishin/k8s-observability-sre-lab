@@ -6,6 +6,14 @@
 # skipDeps: charts are vendored under helm-charts/.
 # One Alertmanager: kube-prometheus-stack in ns monitoring owns /ui/alertmanager
 # (routePrefix, no stripPrefix). Telegram: values/kube-prometheus-stack/telegram.yaml.
+#
+# Public UI base (LB IP or future DNS): values/lab.yaml → lab.publicBaseURL
+# Update that value when Traefik EXTERNAL-IP changes, then helmfile sync.
+
+environments:
+  default:
+    values:
+      - values/lab.yaml
 
 helmDefaults:
   wait: true

@@ -1,6 +1,7 @@
 # Step 6 Telegram routing on the existing kube-prometheus-stack Alertmanager.
-# Does not set routePrefix / externalUrl / extraManifests — those stay in common.yaml
-# and routes.yaml (PathPrefix, no stripPrefix).
+# Does not set routePrefix / externalUrl / extraManifests — routePrefix stays in
+# common.yaml; externalUrl comes from values/lab.yaml via public-url.yaml.gotmpl;
+# extraManifests stay in routes.yaml (PathPrefix, no stripPrefix).
 #
 # Placeholders render without secrets. Copy telegram.local.yaml.example →
 # telegram.local.yaml (gitignored) for a real bot token and chat id.

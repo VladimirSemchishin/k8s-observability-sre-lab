@@ -22,7 +22,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "# Jaeger\n\nTraces live in **Jaeger UI**, not in this panel.\n\n## Jaeger UI\n\n- https://134.199.251.14/ui/jaeger (`admin` / `admin`)\n- In-cluster query: `http://jaeger.jaeger.svc.cluster.local:16686`\n\n## Grafana\n\nDatasource **Jaeger** (`uid: jaeger`) \u2192 Explore. Alloy/OTel send OTLP to `jaeger.jaeger.svc:4317`.\n\nOpenSearch is not used on this stand (in-memory store). Folder name kept as `jaeger-opensearch` to match the GazProm layout.\n",
+        "content": "# Jaeger\n\nTraces live in **Jaeger UI**, not in this panel.\n\n## Jaeger UI\n\n- {{publicBaseURL}}/ui/jaeger (`admin` / `admin`)\n- In-cluster query: `http://jaeger.jaeger.svc.cluster.local:16686`\n\n## Grafana\n\nDatasource **Jaeger** (`uid: jaeger`) \u2192 Explore. Alloy/OTel send OTLP to `jaeger.jaeger.svc:4317`.\n\nOpenSearch is not used on this stand (in-memory store). Folder name kept as `jaeger-opensearch` to match the GazProm layout.\n",
         "mode": "markdown"
       },
       "title": "",
