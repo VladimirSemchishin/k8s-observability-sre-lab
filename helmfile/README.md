@@ -59,7 +59,7 @@ helmfile/
 
 ## Dashboards
 
-Default kube-prometheus-stack dashboards are off. JSON in `dashboards/<folder>/` (`k8s`, `loki` / K8s App Logs, `traefik`, `jaeger-opensearch`, `alloy`, `otel`, `slo`) is applied as ConfigMaps. The Grafana sidecar creates those folder names (`grafana_folder` annotation; directory `runbooks` is published as folder **Runbooks**).
+Default kube-prometheus-stack dashboards are off. JSON in `dashboards/<folder>/` (`k8s`, `loki` / K8s App Logs, `traefik`, `jaeger-opensearch`, `alloy`, `otel`, `sla-slo-sli`) is applied as ConfigMaps. The Grafana sidecar creates those folder names (`grafana_folder` annotation; directory `runbooks` is published as folder **Runbooks**, directory `sla-slo-sli` as **SLA/SLO/SLI**).
 
 `scripts/apply-grafana-dashboards.sh` (helmfile pre/postsync) also substitutes `{{publicBaseURL}}` from `values/lab.yaml`.
 
@@ -75,7 +75,7 @@ Example: `demo-load-error-rate-slo-breach.md` → alert `DemoLoadErrorRateSLOBre
 
 ### SLO (demo-load)
 
-Folder `slo`, dashboard **SLA / SLO / SLI — demo-load** (`uid: slo-demo-load`):
+Folder **SLA/SLO/SLI** (directory `dashboards/sla-slo-sli/`), dashboard **SLA / SLO / SLI — demo-load** (`uid: slo-demo-load`):
 
 - **SLA** — 99% successful HTTP responses (what we promise the customer)
 - **SLO** — error rate **< 1%** over 5m (internal target; alert `DemoLoadErrorRateSLOBreach` in `alerts/demo/slo.yaml`)

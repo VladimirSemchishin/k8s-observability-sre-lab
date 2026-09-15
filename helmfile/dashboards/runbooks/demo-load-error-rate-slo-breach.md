@@ -8,7 +8,7 @@
 
 Как чинить и куда смотреть если сработал этот алерт:
 
-1. Grafana → папка **slo** → дашборд **SLA / SLO / SLI — demo-load**. Проверьте, что SLI (error rate) выше красной линии 1% и error budget отрицательный. Пока k6 крутит `/error`, это ожидаемо.
+1. Grafana → папка **SLA/SLO/SLI** → дашборд **SLA / SLO / SLI — demo-load**. Проверьте, что SLI (error rate) выше красной линии 1% и error budget отрицательный. Пока k6 крутит `/error`, это ожидаемо.
 2. Логи Loki, namespace `demo`: `{namespace="demo"} | json` и ошибки `{namespace="demo"} | json | status = 500`. Скопируйте `trace_id` из JSON-строки.
 3. Трейсы: Jaeger UI, сервис **`demo-load`**, operation `GET /error` (и соседние `GET /work`, `GET /slow`). Вставьте `trace_id` из лога. В Grafana тот же datasource **Jaeger** (`uid: jaeger`).
 4. Починить / снять нагрузку: `kubectl -n demo delete job demo-load-k6` (или уменьшите долю `/error`). Приложение само отдаёт 500 на `/error` — это не падение пода.
